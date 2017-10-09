@@ -1,0 +1,6 @@
+---
+- name: get netwokr instance details
+  hosts: localhost
+  roles:
+    - { role: show_network }
+

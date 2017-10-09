@@ -1,0 +1,549 @@
+---
+swagger: "2.0"
+info:
+  description: "ansile resource manager specification."
+  version: "0.8"
+  title: "ALM resource manager for ansible"
+basePath: "/api/v1.0/resource-manager"
+tags:
+- name: "configuration-controller"
+  description: "Configuration Controller"
+- name: "lifecycle-controller"
+  description: "Lifecycle Controller"
+- name: "topology-controller"
+  description: "Topology Controller"
+- name: "type-controller"
+  description: "Type Controller"
+- name: "driver-additions"
+  description: "Driver janitor"
+paths:
+  /configuration:
+    get:
+      tags:
+      - "configuration-controller"
+      summary: "Get Resource Manager Configuration."
+      description: "Returns high-level information about the configuration of this\
+        \ Resource Manager."
+      operationId: "configuration_get"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "a configuratino object"
+          schema:
+            $ref: "#/definitions/inline_response_200"
+        401:
+          description: "Unauthorized."
+        404:
+          description: "Not Found."
+      x-swagger-router-controller: "swagger_server.controllers.configuration_controller_controller"
+  /types:
+    get:
+      tags:
+      - "type-controller"
+      summary: "Get list of supported resource types"
+      description: "Returns a list of all resource types managed by this Resource\
+        \ Manage"
+      operationId: "types_get"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "a list of type objects"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/inline_response_200_1"
+        401:
+          description: "Unauthorized."
+        404:
+          description: "Not Found."
+      x-swagger-router-controller: "swagger_server.controllers.type_controller_controller"
+  /types/{name}:
+    get:
+      tags:
+      - "type-controller"
+      summary: "Get descriptor of a resource types"
+      description: "Returns information about a specific resource type, including\
+        \ its YAML descriptor."
+      operationId: "types_name_get"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "name"
+        in: "path"
+        description: "Unique name for the resource type requested"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "a list of type objects"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/inline_response_200_2"
+        401:
+          description: "Unauthorized."
+        404:
+          description: "Not Found."
+      x-swagger-router-controller: "swagger_server.controllers.type_controller_controller"
+  /topology/deployment-locations:
+    get:
+      tags:
+      - "topology-controller"
+      summary: "get list of deployment locations"
+      description: "Returns a list of all deployment locations available to this Resource\
+        \ Manager"
+      operationId: "topology_deployment_locations_get"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "a list of type objects"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/inline_response_200_3"
+        401:
+          description: "Unauthorized."
+        404:
+          description: "Not Found."
+      x-swagger-router-controller: "swagger_server.controllers.topology_controller_controller"
+  /topology/deployment-locations/{name}:
+    get:
+      tags:
+      - "topology-controller"
+      summary: "get details of a deployment location"
+      description: "Returns information for the specified deployment location"
+      operationId: "topology_deployment_locations_name_get"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "name"
+        in: "path"
+        description: "Unique name for the location requested"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "a deployment location"
+          schema:
+            $ref: "#/definitions/inline_response_200_3"
+        401:
+          description: "Unauthorized."
+        404:
+          description: "Not Found."
+      x-swagger-router-controller: "swagger_server.controllers.topology_controller_controller"
+    put:
+      tags:
+      - "driver-additions"
+      summary: "create or update a deployment location"
+      description: "Returns information for the specified deployment location"
+      operationId: "topology_deployment_locations_name_put"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "deploymentLocation"
+        required: false
+        schema:
+          $ref: "#/definitions/deploymentLocation"
+      - name: "name"
+        in: "path"
+        description: "Unique name for the location"
+        required: true
+        type: "string"
+      responses:
+        201:
+          description: "a deployment location"
+          schema:
+            $ref: "#/definitions/inline_response_201"
+        401:
+          description: "Unauthorized."
+        404:
+          description: "Not Found."
+      x-swagger-router-controller: "swagger_server.controllers.driver_additions_controller"
+    delete:
+      tags:
+      - "driver-additions"
+      summary: "delete a deployment location"
+      description: "Deletes the specified deployment location"
+      operationId: "topology_deployment_locations_name_delete"
+      consumes:
+      - "application/json"
+      parameters:
+      - name: "name"
+        in: "path"
+        description: "Unique name for the location"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "deployment location deleted"
+        401:
+          description: "Unauthorized."
+        404:
+          description: "Not Found."
+      x-swagger-router-controller: "swagger_server.controllers.driver_additions_controller"
+  /topology/deployment-locations/{name}/instances:
+    get:
+      tags:
+      - "topology-controller"
+      summary: "search for resource instances of a deployment location"
+      description: "Searches for resource instances managed within the specified deployment\
+        \ location. The search can be restricted by the type of the resources to be\
+        \ returned, or a partial match on the name of the resources."
+      operationId: "topology_deployment_locations_name_instances_get"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "name"
+        in: "path"
+        description: "Unique name for the deployment location"
+        required: true
+        type: "string"
+      - name: "instanceType"
+        in: "query"
+        description: "Limits results to be of this resource type (optional, exact\
+          \ matches only)"
+        required: false
+        type: "string"
+      - name: "instanceName"
+        in: "query"
+        description: "Limits results to contain this string in the name (optional,\
+          \ partial matching)"
+        required: false
+        type: "string"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/inline_response_200_4"
+        401:
+          description: "Unauthorized."
+        404:
+          description: "Not Found."
+      x-swagger-router-controller: "swagger_server.controllers.topology_controller_controller"
+  /topology/instances/{id}:
+    get:
+      tags:
+      - "topology-controller"
+      summary: "get details for a resource instance"
+      description: "Returns information for the specified resource instance"
+      operationId: "topology_instances_id_get"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Unique id for the resource instance"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/inline_response_200_4"
+        401:
+          description: "Unauthorized."
+        404:
+          description: "Not Found."
+      x-swagger-router-controller: "swagger_server.controllers.topology_controller_controller"
+  /lifecycle/transitions:
+    post:
+      tags:
+      - "lifecycle-controller"
+      summary: "Performs a transition against a Resource."
+      description: "Requests this Resource Manager performs a specific transition\
+        \ against a resource"
+      operationId: "lifecycle_transitions_post"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "transitionRequest"
+        required: false
+        schema:
+          $ref: "#/definitions/transitionRequest"
+      responses:
+        201:
+          description: "Created"
+          schema:
+            $ref: "#/definitions/inline_response_201_1"
+        401:
+          description: "Not Authorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+      x-swagger-router-controller: "swagger_server.controllers.lifecycle_controller_controller"
+  /lifecycle/transitions/{id}/status:
+    get:
+      tags:
+      - "lifecycle-controller"
+      summary: "get details on transition request status"
+      description: "Returns information about the specified transition or operation\
+        \ request"
+      operationId: "lifecycle_transitions_id_status_get"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Unique id for the transition request"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Created"
+          schema:
+            $ref: "#/definitions/inline_response_200_5"
+        401:
+          description: "Not Authorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+      x-swagger-router-controller: "swagger_server.controllers.lifecycle_controller_controller"
+  /database:
+    post:
+      tags:
+      - "driver-additions"
+      summary: "create database tables"
+      description: "creates all required database tables (intances, resources, locations)"
+      operationId: "database_post"
+      parameters: []
+      responses:
+        201:
+          description: "created"
+      x-swagger-router-controller: "swagger_server.controllers.driver_additions_controller"
+    delete:
+      tags:
+      - "driver-additions"
+      summary: "deletes all database tables"
+      description: "deletes database tables (intances, resources, locations) !!!"
+      operationId: "database_delete"
+      parameters: []
+      responses:
+        200:
+          description: "all deleted"
+      x-swagger-router-controller: "swagger_server.controllers.driver_additions_controller"
+  /database/{table}:
+    patch:
+      tags:
+      - "driver-additions"
+      summary: "truncates a given database table"
+      description: "deletes all content from a database table (intances, resources,\
+        \ locations !!)"
+      operationId: "database_table_patch"
+      parameters:
+      - name: "table"
+        in: "path"
+        description: "Table (instances, resources, locations)"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Table truncated"
+      x-swagger-router-controller: "swagger_server.controllers.driver_additions_controller"
+definitions:
+  deploymentLocationRequest:
+    type: "object"
+    properties:
+      type:
+        type: "string"
+      properties:
+        type: "object"
+        properties: {}
+  inline_response_200_supportedFeatures:
+    properties:
+      AsynchronousTransitionResponses:
+        type: "boolean"
+  inline_response_200_properties:
+    properties:
+      responseKafkaConnectionUrl:
+        type: "string"
+        example: "“zookeeper://localhost:2181”"
+      responseKafkaTopicName:
+        type: "string"
+        example: "“lm-responses\""
+  inline_response_200:
+    properties:
+      name:
+        type: "string"
+        example: "ansible-rm"
+      version:
+        type: "string"
+        example: "1.0"
+      supportedApiVersions:
+        type: "array"
+        items:
+          type: "string"
+          example: "1.0"
+      supportedFeatures:
+        $ref: "#/definitions/inline_response_200_supportedFeatures"
+      properties:
+        $ref: "#/definitions/inline_response_200_properties"
+  inline_response_200_1:
+    properties:
+      name:
+        type: "string"
+      state:
+        type: "string"
+        enum:
+        - "PUBLISHED"
+        - "UNPUBLISHED"
+        - "DELETED"
+      createdAt:
+        type: "string"
+        format: "date"
+      lastModifiedAt:
+        type: "string"
+        format: "date"
+  inline_response_200_2:
+    properties:
+      name:
+        type: "string"
+      descriptor:
+        type: "string"
+      state:
+        type: "string"
+        enum:
+        - "PUBLISHED"
+        - "UNPUBLISHED"
+        - "DELETED"
+      createdAt:
+        type: "string"
+        format: "date"
+      lastModifiedAt:
+        type: "string"
+        format: "date"
+  inline_response_200_3:
+    properties:
+      name:
+        type: "string"
+      type:
+        type: "string"
+  deploymentLocation:
+    type: "object"
+    properties:
+      type:
+        type: "string"
+      properties:
+        type: "object"
+        properties: {}
+  inline_response_201:
+    properties:
+      name:
+        type: "string"
+      type:
+        type: "string"
+      properties:
+        type: "object"
+        properties: {}
+  topologydeploymentlocationsnameinstances_properties:
+    properties:
+      propertyName:
+        type: "string"
+      propertyValue:
+        type: "string"
+  inline_response_200_4:
+    properties:
+      resourceId:
+        type: "string"
+      resourceName:
+        type: "string"
+      resourceType:
+        type: "string"
+      resourceManagerId:
+        type: "string"
+      deploymentLocation:
+        type: "string"
+      properties:
+        $ref: "#/definitions/topologydeploymentlocationsnameinstances_properties"
+      createdAt:
+        type: "string"
+        format: "date"
+      lastModifiedAt:
+        type: "string"
+        format: "date"
+  transitionRequest:
+    type: "object"
+    properties:
+      resourceManagerId:
+        type: "string"
+      deploymentLocation:
+        type: "string"
+      resourceType:
+        type: "string"
+      transitionName:
+        type: "string"
+      resourceName:
+        type: "string"
+      context:
+        type: "object"
+        properties: {}
+      properties:
+        type: "object"
+        properties: {}
+  inline_response_201_1_context:
+    properties:
+      AsynchronousTransitionResponse:
+        type: "boolean"
+  inline_response_201_1:
+    properties:
+      requestId:
+        type: "string"
+      requestState:
+        type: "string"
+        enum:
+        - "PENDING"
+        - "IN_PROGRESS"
+        - "COMPLETED"
+        - "CANCELLED"
+        - "FAILED"
+      resourceId:
+        type: "string"
+      startedAt:
+        type: "string"
+        format: "date"
+      finishedAt:
+        type: "string"
+        format: "date"
+      context:
+        $ref: "#/definitions/inline_response_201_1_context"
+  inline_response_200_5:
+    properties:
+      requestId:
+        type: "string"
+      requestState:
+        type: "string"
+        enum:
+        - "PENDING"
+        - "IN_PROGRESS"
+        - "COMPLETED"
+        - "CANCELLED"
+        - "FAILED"
+      requestStateReason:
+        type: "string"
+      resourceId:
+        type: "string"
+      startedAt:
+        type: "string"
+        format: "date"
+      finishedAt:
+        type: "string"
+        format: "date"
+      context:
+        $ref: "#/definitions/inline_response_201_1_context"

@@ -1,0 +1,13 @@
+name: "resource::ans-network::1.0"
+description: "Network resource from ansible"
+properties:
+  name:
+    type: "string"
+    description: "name of the network"
+  id:
+    type: "string"
+    description: "uuid of the network"
+lifecycle:
+- "Install"
+- "Uninstall"
+resource-manager-type: "ansible-rm"

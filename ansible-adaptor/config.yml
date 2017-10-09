@@ -1,0 +1,15 @@
+driver:
+  name: ansible-rm
+  version: 0.1
+  supportedApiVersions:
+    - "1.0"
+  supportedFeatures:
+    AsynchronousTransitionResponses: false
+  properties:
+    - responseKafkaConnectionUrl: zookeeper://localhost:2181
+    - responseKafkaTopicName: lm-responses\
+ansible:
+  resource_dir: "/var/alm_ansible_rm/resources"
+  keys_dir: "/var/alm_ansible_rm/keys"
+cassandra:
+  ttl: 86400

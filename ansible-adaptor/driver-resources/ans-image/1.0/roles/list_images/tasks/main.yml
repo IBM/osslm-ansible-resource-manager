@@ -1,0 +1,8 @@
+---
+- name: Gather facts about a previously created image
+  os_image_facts:
+    auth:
+      auth_url: "{{ auth_url }}"
+      username: "{{ auth_user }}"
+      password: "{{ auth_pwd }}"
+      project_name: "{{ project }}"

@@ -1,0 +1,5 @@
+name: "resource::hello-world::1.0"
+description: "A sample resource"
+lifecycle:
+- "Install"
+resource-manager-type: "ansible-rm"

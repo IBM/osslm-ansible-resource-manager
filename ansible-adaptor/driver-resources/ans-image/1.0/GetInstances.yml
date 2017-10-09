@@ -1,0 +1,5 @@
+---
+- name: list of glance image instances
+  hosts: localhost
+  roles:
+    - { role: list_images }

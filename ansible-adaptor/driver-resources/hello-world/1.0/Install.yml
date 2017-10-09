@@ -1,0 +1,14 @@
+- hosts: 127.0.0.1
+  connection: local
+  gather_facts: no
+  tasks:
+    - command: uptime
+      register: ut
+    - name: report PROPERTIES
+      debug:
+        msg:
+          - "current_time: {{ ut['stdout'][0:9] }}"
+    - name: RESOURCE_ID
+      debug:
+        msg:
+          - "resourceId: {{ ut | to_uuid }} "

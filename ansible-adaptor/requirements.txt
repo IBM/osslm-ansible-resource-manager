@@ -1,0 +1,7 @@
+ansible == 2.3.2
+shade == 1.22
+connexion == 1.1.9
+python_dateutil == 2.6.0
+setuptools == 36.2.2
+cassandra-driver == 3.11
+kafka-python
