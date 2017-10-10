@@ -21,7 +21,7 @@ services:
        - CASSANDRA_START_RPC=true
   alm-ansible-rm:
      build:
-       context: ./alm-ansible-driver
+       context: ./ansible-adaptor
        dockerfile: Dockerfile
      ports:
        - "8080:8080"
