@@ -74,7 +74,11 @@ class InstanceHandler():
 
         #app.logger.debug('found rows: ' + str(len(rows)))
         for row in rows:
-            row['properties'] = dict(row['properties'])
+            if row['properties'] is None:
+                row['properties'] = {}
+            else:
+                row['properties'] = dict(row['properties'])
+
             row['resourceId'] = str(row['resourceId'])
             row['createdAt'] = row['createdAt'].strftime('%Y-%m-%dT%H:%M:%SZ')
             row['lastModifiedAt'] = row['lastModifiedAt'].strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -111,7 +115,11 @@ class InstanceHandler():
 
         if rows:
             for row in rows:
-                row['properties'] = dict(row['properties'])
+                if row['properties'] is None:
+                    row['properties'] = {}
+                else:
+                    row['properties'] = dict(row['properties'])
+
                 row['internalResourceInstances'] = json.loads(row['internalResourceInstances'])
                 row['resourceId'] = str(row['resourceId'])
                 row['createdAt'] = row['createdAt'].strftime('%Y-%m-%dT%H:%M:%SZ')
