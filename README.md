@@ -1,5 +1,5 @@
 # ALM Resource Manager for Ansible
-For a more detailed overview and context of this project reference https://github.com/IBM/open-source-service-lifecycle-mgmt/Readme.md
+For a more detailed overview and context of this project reference the [opensource service lifecycle management project]( https://github.com/IBM/open-source-service-lifecycle-mgmt/blob/master/README.md)
 
 This project provides a resource manager (RM) for ALM 1.1 based on ansible (see https://www.ansible.com/ ).
 
@@ -68,4 +68,4 @@ var_alm_ansible_rm/driver
 ```
 
 # ansible Playbooks and Roles
-There is a [set of requirements](docs/ansible-requirements.md) that need to be implemented in your ansible playbooks and roles so that this resource manager can successfully run these playbooks,
+There is a [set of requirements](docs/ansible-requirements.md) that need to be implemented in your ansible playbooks and roles so that this resource manager can successfully run these playbooks.
