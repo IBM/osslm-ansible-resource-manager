@@ -4,4 +4,4 @@ connexion == 1.1.9
 python_dateutil == 2.6.0
 setuptools == 36.2.2
 cassandra-driver == 3.11
-kafka-python
+kafka-python >= 1.3.4

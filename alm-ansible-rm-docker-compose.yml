@@ -30,5 +30,7 @@ services:
      environment:
        - LOG_LEVEL=DEBUG
        - LOG_FOLDER=/var/alm_ansible_rm/logs
+     extra_hosts:
+       - "kafka:192.168.63.179"
      depends_on:
        - alm-ansible-rm-db

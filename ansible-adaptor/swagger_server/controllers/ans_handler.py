@@ -16,7 +16,7 @@ from ansible.utils.display import Display
 from ansible.plugins import callback_loader
 from ansible.plugins.callback import CallbackBase
 from flask import current_app as app
-
+from .ans_kafka import *
 
 
 class OutputCallback(CallbackBase):
@@ -209,6 +209,7 @@ class Runner(object):
         self.request_id = request_id
         self.started_at = started_at
         self.finished_at = None
+        self.resInstance = {}
 
         self.options = Options()
         self.options.private_key_file = private_key_file
@@ -313,13 +314,13 @@ class Runner(object):
                 self.logger.debug('properties: '+ str(properties))
 
                 self.logger.debug('creating instance')
-                self.create_instance(resource_id, properties, internal_resources)
+                self.resInstance = self.create_instance(resource_id, properties, internal_resources)
 
             elif self.transition_request.transition_name == 'Uninstall':
                 self.logger.debug('deleting instance')
                 self.delete_instance(resource_id, self.transition_request.deployment_location )
 
-            self.log_request_status('COMPLETED', 'Done in ' + str((self.finished_at - self.started_at).total_seconds()) + ' seconds', resource_id)
+            self.log_request_status('COMPLETED', 'Done in ' + str((self.finished_at - self.started_at).total_seconds()) + ' seconds', resource_id )
             return
 
         else:
@@ -375,8 +376,26 @@ class Runner(object):
         self.logger.info('request logged to DB: ' + str(self.request_id))
 
         if is_async_mode:
-            # call kafka
-            self.logger.critical('is_async_mode mode using kafka is not implemented yet')
+            if (status == 'COMPLETED') or (status == 'FAILED'):
+                # call kafka
+                self.logger.info('async mode and status is '+status)
+                kafkaClient = Kafka(self.logger)
+
+                kmsg = {}
+                #kmsg['resourceInstance'] = self.resInstance
+                kmsg['requestId'] = str(self.request_id)
+                kmsg['resourceManagerId'] = self.transition_request.resource_manager_id
+                kmsg['deploymentLocation'] = self.transition_request.deployment_location
+                kmsg['resourceType'] = self.transition_request.resource_type
+                kmsg['transitionName'] = self.transition_request.transition_name
+                #ksmg['context'] = self.config.getSupportedFeatures()
+                kmsg['requestState'] = status
+                kmsg['requestStateReason'] = reason
+                kmsg['startedAt'] = started
+                kmsg['finishedAt'] = finished
+
+                self.logger.debug('sending message to kafka: '+ str(kmsg))
+                kafkaClient.sendLifecycleEvent(kmsg)
 
         return
 
@@ -421,7 +440,7 @@ class Runner(object):
 
         self.logger.info('instance logged to DB: ' + str(pitem['resource_id']))
         self.logger.debug('instance created ' + str(pitem))
-        return
+        return pitem
 
 
 
