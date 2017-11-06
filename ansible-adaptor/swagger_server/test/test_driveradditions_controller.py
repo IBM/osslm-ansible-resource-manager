@@ -2,8 +2,8 @@
 
 from __future__ import absolute_import
 
-from swagger_server.models.deployment_location import DeploymentLocation
-from swagger_server.models.inline_response201 import InlineResponse201
+from swagger_server.models.deployment_location1 import DeploymentLocation
+from swagger_server.models.inline_response20011 import InlineResponse20011
 from . import BaseTestCase
 from six import BytesIO
 from flask import json
@@ -64,6 +64,16 @@ class TestDriveradditionsController(BaseTestCase):
                                     method='PUT',
                                     data=json.dumps(deploymentLocation),
                                     content_type='application/json')
+        self.assert200(response, "Response body is : " + response.data.decode('utf-8'))
+
+    def test_topology_deployment_locations_properties_get(self):
+        """
+        Test case for topology_deployment_locations_properties_get
+
+        get list of deployment locations with all properties
+        """
+        response = self.client.open('/api/v1.0/resource-manager/topology/deployment-locations/properties',
+                                    method='GET')
         self.assert200(response, "Response body is : " + response.data.decode('utf-8'))
 
 

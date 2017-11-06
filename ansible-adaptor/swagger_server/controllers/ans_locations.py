@@ -8,6 +8,7 @@ from flask import current_app as app
 from .ans_driver_config import ConfigReader
 from .ans_cassandra import CassandraHandler
 
+
 class LocationHandler():
     """
     manages lcoation data
@@ -31,19 +32,38 @@ class LocationHandler():
             resp = {"name": row['name'], "type": row['type']}
             pload.append(resp)
 
+        if len(pload) > 0:
+            return 200, '', pload
+        else:
+            return 404, 'no locations found', ''
+
+    def list_locations_properties(self):
+        """
+        list all configured locations
+        """
+        pload = []
+
+        app.logger.info('retrieving locations')
+
+        query = "SELECT name, type, properties FROM locations"
+        rows = self.dbsession.execute(query)
+
+        for row in rows:
+            if not row['properties']:
+                row['properties'] = {}
+            resp = {"name": row['name'], "type": row['type'], "properties": dict(row['properties'])}
+            pload.append(resp)
 
         if len(pload) > 0:
             return 200, '', pload
         else:
             return 404, 'no locations found', ''
 
-
     def create_location(self, name, deploymentLocation):
         """
         creates a location record in cassandra
         """
         app.logger.info('creating a new location: ' + name)
-
 
         try:
             self.dbsession.execute("""
@@ -56,7 +76,6 @@ class LocationHandler():
         except:
             app.logger.error('error creating the location instance ' + name)
             return 400, 'Error creating location '+name
-
 
         app.logger.debug(name + '  ' + str(deploymentLocation))
         app.logger.info('location created: ' + name)
@@ -78,7 +97,6 @@ class LocationHandler():
         app.logger.info('location deleted: ' + name)
         return 200, ''
 
-
     def get_location(self, locationName):
         """
         get location details
@@ -94,7 +112,6 @@ class LocationHandler():
             return 200, '', row
 
         return 404, 'no location found for ' + locationName, ''
-
 
     def get_location_config(self, locationName):
         """

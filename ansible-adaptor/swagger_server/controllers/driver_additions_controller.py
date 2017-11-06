@@ -14,6 +14,7 @@ from ..util import deserialize_date, deserialize_datetime
 from .ans_locations import LocationHandler
 from .ans_cassandra import CassandraHandler
 
+
 def database_delete():
     """
     deletes all database tables
@@ -22,12 +23,12 @@ def database_delete():
     :rtype: None
     """
 
-
     rcode = CassandraHandler().delete_tables()
     if rcode == 200:
         return 200
     else:
         abort(rcode, '')
+
 
 def database_post():
     """
@@ -36,8 +37,8 @@ def database_post():
 
     :rtype: None
     """
-    rcode =  CassandraHandler().create_tables()
-    if rcode == 201 :
+    rcode = CassandraHandler().create_tables()
+    if rcode == 201:
         return 201
     else:
         abort(rcode, '')
@@ -56,7 +57,7 @@ def database_table_patch(table):
     if rcode == 200:
         return 200
     else:
-        abort( rcode, '' )
+        abort(rcode, '')
 
 
 def topology_deployment_locations_name_delete(name):
@@ -103,8 +104,26 @@ def topology_deployment_locations_name_put(name, deploymentLocation):
         app.logger.info('location '+name+' created')
         return
     else:
-        app.logger.info('location '+name+' not created: ' +rcMsg)
-        abort( rcode, rcMsg )
-
+        app.logger.info('location ' + name + ' not created: ' + rcMsg)
+        abort(rcode, rcMsg)
 
     return InlineResponse201(name, deploymentLocation['type'], deploymentLocation['properties'])
+
+
+def topology_deployment_locations_properties_get():
+    """
+    get list of deployment locations with all properties
+    Returns a list of all deployment locations available to this Resource Manager
+
+    :rtype: List[InlineResponse20011]
+    """
+    # get locations from db
+    locations = LocationHandler()
+    app.logger.info('getting locations')
+    rc, rcMsg, resp200 = locations.list_locations_properties()
+
+    if rc == 200:
+        app.logger.debug('locations found ' + str(resp200))
+        return resp200
+    else:
+        abort(rc, rcMsg)

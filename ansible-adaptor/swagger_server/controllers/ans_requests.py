@@ -9,7 +9,7 @@ import uuid
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 
-from swagger_server.models.inline_response2011 import InlineResponse2011
+from swagger_server.models.inline_response202 import InlineResponse202
 from flask import current_app as app
 
 from .ans_driver_config import ConfigReader
@@ -51,16 +51,16 @@ class RequestHandler():
 
         if rc != 200:
             app.logger.error('invalid resource type: ' + self.transitionRequest.resource_type +', ' + rcMsg)
-            resp = InlineResponse2011(str(self.requestId), 'FAILED', '', self.startedAt,'', self.config.getSupportedFeatures())
+            resp = InlineResponse202(str(self.requestId), 'FAILED', self.config.getSupportedFeatures())
             app.logger.info('request ' + str(self.requestId) + ' FAILED: ' + rcMsg)
             return rc, resp
 
         # check location exists
         app.logger.info('validate location: ' + self.transitionRequest.deployment_location)
-        rc, rcMsg, location  = LocationHandler().get_location_config(self.transitionRequest.deployment_location)
+        rc, rcMsg, location = LocationHandler().get_location_config(self.transitionRequest.deployment_location)
         if rc != 200:
             app.logger.error('location ' + self.transitionRequest.deployment_location + ' ' + rcMsg)
-            resp = InlineResponse2011(str(self.requestId), 'FAILED', '', self.startedAt,'', self.config.getSupportedFeatures())
+            resp = InlineResponse202(str(self.requestId), 'FAILED', self.config.getSupportedFeatures())
             app.logger.info('request ' + str(self.requestId) + ' FAILED: ' + rcMsg)
             return rc, resp
 
@@ -71,7 +71,7 @@ class RequestHandler():
         app.logger.info('set playbook variables')
         # first add locatino credentials and properties
         user_data = {}
-        user_data['user_id'] = 'ALM' # location['auth_user']
+        user_data['user_id'] = 'ALM'
         user_data['keys_dir'] = self.config.getKeysDir()
         # add properties from the request
         if self.transitionRequest.properties:
@@ -102,7 +102,7 @@ class RequestHandler():
             executor.submit(runner.run_async)
 
             app.logger.info('request ' + str(self.requestId) + ' PENDING ')
-            resp = InlineResponse2011(str(self.requestId), 'PENDING', '', self.startedAt,'' , self.config.getSupportedFeatures())
+            resp = InlineResponse202(str(self.requestId), 'PENDING', self.config.getSupportedFeatures())
             return 202, resp
 
     def get_request(self, requestId):
@@ -130,11 +130,11 @@ class RequestHandler():
                 pload['startedAt'] = row['startedat'].strftime('%Y-%m-%dT%H:%M:%SZ')
                 pload['requestStateReason'] = row['requeststatereason']
                 pload['requestState'] = row['requeststate']
-                if row['finishedat'] != None:
+                if row['finishedat'] is not None:
                     pload['finishedAt'] = row['finishedat'].strftime('%Y-%m-%dT%H:%M:%SZ')
                 else:
                     pload['finishedAt'] = ''
-                if row['resourceid'] != None:
+                if row['resourceid'] is not None:
                     pload['resourceId'] = str(row['resourceid'])
                 else:
                     pload['resourceId'] = ''

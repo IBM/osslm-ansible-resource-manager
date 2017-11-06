@@ -2,8 +2,13 @@
 swagger: "2.0"
 info:
   description: "ansile resource manager specification."
-  version: "0.8"
+  version: "1.1"
   title: "ALM resource manager for ansible"
+  contact:
+    name: "Jochen Kappel"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
 basePath: "/api/v1.0/resource-manager"
 tags:
 - name: "configuration-controller"
@@ -32,7 +37,7 @@ paths:
         200:
           description: "a configuratino object"
           schema:
-            $ref: "#/definitions/inline_response_200"
+            $ref: "#/definitions/inline_response_200_7"
         401:
           description: "Unauthorized."
         404:
@@ -55,7 +60,7 @@ paths:
           schema:
             type: "array"
             items:
-              $ref: "#/definitions/inline_response_200_1"
+              $ref: "#/definitions/inline_response_200_8"
         401:
           description: "Unauthorized."
         404:
@@ -83,7 +88,7 @@ paths:
           schema:
             type: "array"
             items:
-              $ref: "#/definitions/inline_response_200_2"
+              $ref: "#/definitions/inline_response_200_9"
         401:
           description: "Unauthorized."
         404:
@@ -106,12 +111,35 @@ paths:
           schema:
             type: "array"
             items:
-              $ref: "#/definitions/inline_response_200_3"
+              $ref: "#/definitions/inline_response_200_10"
         401:
           description: "Unauthorized."
         404:
           description: "Not Found."
       x-swagger-router-controller: "swagger_server.controllers.topology_controller_controller"
+  /topology/deployment-locations/properties:
+    get:
+      tags:
+      - "driver-additions"
+      summary: "get list of deployment locations with all properties"
+      description: "Returns a list of all deployment locations available to this Resource\
+        \ Manager"
+      operationId: "topology_deployment_locations_properties_get"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "a list of deployment location objects"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/inline_response_200_11"
+        401:
+          description: "Unauthorized."
+        404:
+          description: "Not Found."
+      x-swagger-router-controller: "swagger_server.controllers.driver_additions_controller"
   /topology/deployment-locations/{name}:
     get:
       tags:
@@ -131,7 +159,7 @@ paths:
         200:
           description: "a deployment location"
           schema:
-            $ref: "#/definitions/inline_response_200_3"
+            $ref: "#/definitions/inline_response_200_10"
         401:
           description: "Unauthorized."
         404:
@@ -152,7 +180,7 @@ paths:
         name: "deploymentLocation"
         required: false
         schema:
-          $ref: "#/definitions/deploymentLocation"
+          $ref: "#/definitions/deploymentLocation_1"
       - name: "name"
         in: "path"
         description: "Unique name for the location"
@@ -162,7 +190,7 @@ paths:
         201:
           description: "a deployment location"
           schema:
-            $ref: "#/definitions/inline_response_201"
+            $ref: "#/definitions/inline_response_200_11"
         401:
           description: "Unauthorized."
         404:
@@ -225,7 +253,7 @@ paths:
           schema:
             type: "array"
             items:
-              $ref: "#/definitions/inline_response_200_4"
+              $ref: "#/definitions/inline_response_200_12"
         401:
           description: "Unauthorized."
         404:
@@ -250,7 +278,7 @@ paths:
         200:
           description: "OK"
           schema:
-            $ref: "#/definitions/inline_response_200_4"
+            $ref: "#/definitions/inline_response_200_12"
         401:
           description: "Unauthorized."
         404:
@@ -273,12 +301,12 @@ paths:
         name: "transitionRequest"
         required: false
         schema:
-          $ref: "#/definitions/transitionRequest"
+          $ref: "#/definitions/transitionRequest_1"
       responses:
-        201:
-          description: "Created"
+        202:
+          description: "Accepted"
           schema:
-            $ref: "#/definitions/inline_response_201_1"
+            $ref: "#/definitions/inline_response_202"
         401:
           description: "Not Authorized"
         403:
@@ -308,7 +336,7 @@ paths:
         200:
           description: "Created"
           schema:
-            $ref: "#/definitions/inline_response_200_5"
+            $ref: "#/definitions/inline_response_200_13"
         401:
           description: "Not Authorized"
         403:
@@ -358,14 +386,6 @@ paths:
           description: "Table truncated"
       x-swagger-router-controller: "swagger_server.controllers.driver_additions_controller"
 definitions:
-  deploymentLocationRequest:
-    type: "object"
-    properties:
-      type:
-        type: "string"
-      properties:
-        type: "object"
-        properties: {}
   inline_response_200_supportedFeatures:
     properties:
       AsynchronousTransitionResponses:
@@ -392,7 +412,7 @@ definitions:
           type: "string"
           example: "1.0"
       supportedFeatures:
-        $ref: "#/definitions/inline_response_200_supportedFeatures"
+        $ref: "#/definitions/inline_response_200_7_supportedFeatures"
       properties:
         $ref: "#/definitions/inline_response_200_properties"
   inline_response_200_1:
@@ -491,6 +511,8 @@ definitions:
         type: "string"
       resourceName:
         type: "string"
+      metricKey:
+        type: "string"
       context:
         type: "object"
         properties: {}
@@ -513,16 +535,8 @@ definitions:
         - "COMPLETED"
         - "CANCELLED"
         - "FAILED"
-      resourceId:
-        type: "string"
-      startedAt:
-        type: "string"
-        format: "date"
-      finishedAt:
-        type: "string"
-        format: "date"
       context:
-        $ref: "#/definitions/inline_response_201_1_context"
+        $ref: "#/definitions/inline_response_202_context"
   inline_response_200_5:
     properties:
       requestId:
@@ -546,4 +560,174 @@ definitions:
         type: "string"
         format: "date"
       context:
-        $ref: "#/definitions/inline_response_201_1_context"
+        $ref: "#/definitions/inline_response_202_context"
+  inline_response_200_6:
+    properties:
+      name:
+        type: "string"
+      type:
+        type: "string"
+      properties:
+        type: "object"
+        properties: {}
+  inline_response_200_7_supportedFeatures:
+    properties:
+      AsynchronousTransitionResponses:
+        type: "boolean"
+  inline_response_200_7:
+    properties:
+      name:
+        type: "string"
+        example: "ansible-rm"
+      version:
+        type: "string"
+        example: "1.0"
+      supportedApiVersions:
+        type: "array"
+        items:
+          type: "string"
+          example: "1.0"
+      supportedFeatures:
+        $ref: "#/definitions/inline_response_200_7_supportedFeatures"
+      properties:
+        $ref: "#/definitions/inline_response_200_properties"
+  inline_response_200_8:
+    properties:
+      name:
+        type: "string"
+      state:
+        type: "string"
+        enum:
+        - "PUBLISHED"
+        - "UNPUBLISHED"
+        - "DELETED"
+      createdAt:
+        type: "string"
+        format: "date"
+      lastModifiedAt:
+        type: "string"
+        format: "date"
+  inline_response_200_9:
+    properties:
+      name:
+        type: "string"
+      descriptor:
+        type: "string"
+      state:
+        type: "string"
+        enum:
+        - "PUBLISHED"
+        - "UNPUBLISHED"
+        - "DELETED"
+      createdAt:
+        type: "string"
+        format: "date"
+      lastModifiedAt:
+        type: "string"
+        format: "date"
+  inline_response_200_10:
+    properties:
+      name:
+        type: "string"
+      type:
+        type: "string"
+  inline_response_200_11:
+    properties:
+      name:
+        type: "string"
+      type:
+        type: "string"
+      properties:
+        type: "object"
+        properties: {}
+  deploymentLocation_1:
+    type: "object"
+    properties:
+      type:
+        type: "string"
+      properties:
+        type: "object"
+        properties: {}
+  inline_response_200_12:
+    properties:
+      resourceId:
+        type: "string"
+      resourceName:
+        type: "string"
+      resourceType:
+        type: "string"
+      resourceManagerId:
+        type: "string"
+      deploymentLocation:
+        type: "string"
+      properties:
+        $ref: "#/definitions/topologydeploymentlocationsnameinstances_properties"
+      createdAt:
+        type: "string"
+        format: "date"
+      lastModifiedAt:
+        type: "string"
+        format: "date"
+  transitionRequest_1:
+    type: "object"
+    properties:
+      resourceManagerId:
+        type: "string"
+      deploymentLocation:
+        type: "string"
+      resourceType:
+        type: "string"
+      transitionName:
+        type: "string"
+      resourceName:
+        type: "string"
+      metricKey:
+        type: "string"
+      context:
+        type: "object"
+        properties: {}
+      properties:
+        type: "object"
+        properties: {}
+  inline_response_202_context:
+    properties:
+      AsynchronousTransitionResponse:
+        type: "boolean"
+  inline_response_202:
+    properties:
+      requestId:
+        type: "string"
+      requestState:
+        type: "string"
+        enum:
+        - "PENDING"
+        - "IN_PROGRESS"
+        - "COMPLETED"
+        - "CANCELLED"
+        - "FAILED"
+      context:
+        $ref: "#/definitions/inline_response_202_context"
+  inline_response_200_13:
+    properties:
+      requestId:
+        type: "string"
+      requestState:
+        type: "string"
+        enum:
+        - "PENDING"
+        - "IN_PROGRESS"
+        - "COMPLETED"
+        - "CANCELLED"
+        - "FAILED"
+      requestStateReason:
+        type: "string"
+      resourceId:
+        type: "string"
+      startedAt:
+        type: "string"
+        format: "date"
+      finishedAt:
+        type: "string"
+        format: "date"
+      context:
+        $ref: "#/definitions/inline_response_202_context"

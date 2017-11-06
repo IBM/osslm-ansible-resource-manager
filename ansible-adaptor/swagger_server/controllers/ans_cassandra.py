@@ -8,6 +8,7 @@ from flask import current_app as app
 from cassandra.cluster import Cluster
 from cassandra.query import dict_factory
 
+
 class CassandraHandler:
     """
     database handler singleton
@@ -24,9 +25,9 @@ class CassandraHandler:
         def get_session(self):
             """ get a DB conenction """
             if self.dbSession:
-                app.logger.info('using cassandra session to '+ self.keyspace)
+                app.logger.info('using cassandra session to ' + self.keyspace)
             else:
-                app.logger.info('creating cassandra session '+ self.keyspace)
+                app.logger.info('creating cassandra session ' + self.keyspace)
 
                 try:
                     self.cluster = Cluster(['alm-ansible-rm-db'])
@@ -53,7 +54,6 @@ class CassandraHandler:
                     self.dbSession.row_factory = dict_factory
 
             return self.dbSession
-
 
         def create_tables(self):
             """
@@ -90,6 +90,7 @@ class CassandraHandler:
                     resourceName text,
                     resourceManagerId text,
                     deploymentLocation text,
+                    metricKey text,
                     createdAt timestamp,
                     lastModifiedAt timestamp,
                     properties map<text, text>,
@@ -130,13 +131,12 @@ class CassandraHandler:
             try:
                 session.execute("""
                    INSERT INTO locations (name, type, description, properties) VALUES ( %s, %s, %s, %s )
-                      """, ('world','planet','a test location', {} ))
+                      """, ('world', 'planet', 'a test location', {}))
                 app.logger.info('sample locatiob inserted')
             except Exception as e:
                 # handle any other exception
                 app.logger.error(str(e))
                 return 400
-
 
             return 201
 
