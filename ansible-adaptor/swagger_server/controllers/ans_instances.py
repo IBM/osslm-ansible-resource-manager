@@ -23,21 +23,19 @@ class InstanceHandler():
         self.resType = resType
         self.resVer = resVer
         self.location_name = location_name
-        self.playbook_dir = self.config.getResourceDir()+'/'+self.resType+'/'+self.resVer+'/'
-
+        self.playbook_dir = self.config.getResourceDir()+'/'+self.resType+'/'+self.resVer+'/lifecycle/'
 
         self.location = {}
         self.reqHandler = {}
         self.transitionRequest = {}
         self.dbsession = CassandraHandler().get_session()
 
-
     def get_all_instances(self, instanceName):
         """
         retrive all instances from db
         """
         loc = LocationHandler()
-        app.logger.info('validating location '+ self.location_name)
+        app.logger.info('validating location ' + self.location_name)
         rc, rcMsg, self.location = loc.get_location_config(self.location_name)
         if rc != 200:
             app.logger.error(rcMsg)
@@ -55,7 +53,6 @@ class InstanceHandler():
         # search for instances in the inventory folder
         app.logger.info('search for instances ')
 
-
         select = """SELECT resourceId as "resourceId",
              resourceName as "resourceName",
              resourceType as "resourceType",
@@ -66,13 +63,13 @@ class InstanceHandler():
              properties as "properties"
              FROM instances """
         if self.resType == '':
-            query = select +" WHERE deploymentLocation = %s"
+            query = select + " WHERE deploymentLocation = %s"
             rows = self.dbsession.execute(query, [self.location_name])
         else:
             query = select + "WHERE deploymentLocation = %s AND resourceType = %s"
             rows = self.dbsession.execute(query, [self.location_name, 'resource::'+self.resType+'::' + self.resVer])
 
-        #app.logger.debug('found rows: ' + str(len(rows)))
+        # app.logger.debug('found rows: ' + str(len(rows)))
         for row in rows:
             if row['properties'] is None:
                 row['properties'] = {}
@@ -87,7 +84,6 @@ class InstanceHandler():
                 pload.append(row)
             elif instanceName in row['resourceName']:
                 pload.append(row)
-
 
         app.logger.info(str(len(pload)) + ' instances found')
         app.logger.debug('instances found: ' + str(pload))

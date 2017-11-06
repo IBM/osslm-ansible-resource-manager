@@ -47,7 +47,7 @@ class RequestHandler():
         app.logger.info('validating requeste resource type: ' + self.transitionRequest.resource_type)
         rc, rcMsg, self.resType, self.resVer = ResourceTypeHandler().validate_resource_type(self.transitionRequest.resource_type)
 
-        self.playbook_dir = self.config.getResourceDir()+'/'+self.resType+'/'+self.resVer+'/'
+        self.playbook_dir = self.config.getResourceDir()+'/'+self.resType+'/'+self.resVer+'/lifecycle/'
 
         if rc != 200:
             app.logger.error('invalid resource type: ' + self.transitionRequest.resource_type +', ' + rcMsg)
