@@ -2,9 +2,9 @@
 
 from __future__ import absolute_import
 
-from swagger_server.models.inline_response2005 import InlineResponse2005
-from swagger_server.models.inline_response2011 import InlineResponse2011
-from swagger_server.models.transition_request import TransitionRequest
+from swagger_server.models.inline_response20013 import InlineResponse20013
+from swagger_server.models.inline_response202 import InlineResponse202
+from swagger_server.models.transition_request1 import TransitionRequest
 from . import BaseTestCase
 from six import BytesIO
 from flask import json

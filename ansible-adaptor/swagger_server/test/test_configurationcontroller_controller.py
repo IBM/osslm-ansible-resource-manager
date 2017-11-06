@@ -2,7 +2,7 @@
 
 from __future__ import absolute_import
 
-from swagger_server.models.inline_response200 import InlineResponse200
+from swagger_server.models.inline_response2007 import InlineResponse2007
 from . import BaseTestCase
 from six import BytesIO
 from flask import json

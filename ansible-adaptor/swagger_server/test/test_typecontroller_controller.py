@@ -2,8 +2,8 @@
 
 from __future__ import absolute_import
 
-from swagger_server.models.inline_response2001 import InlineResponse2001
-from swagger_server.models.inline_response2002 import InlineResponse2002
+from swagger_server.models.inline_response2008 import InlineResponse2008
+from swagger_server.models.inline_response2009 import InlineResponse2009
 from . import BaseTestCase
 from six import BytesIO
 from flask import json

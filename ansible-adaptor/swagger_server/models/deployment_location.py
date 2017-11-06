@@ -41,7 +41,7 @@ class DeploymentLocation(Model):
 
         :param dikt: A dict.
         :type: dict
-        :return: The deploymentLocation of this DeploymentLocation.
+        :return: The deploymentLocation_1 of this DeploymentLocation.
         :rtype: DeploymentLocation
         """
         return deserialize_model(dikt, cls)
@@ -87,4 +87,3 @@ class DeploymentLocation(Model):
         """
 
         self._properties = properties
-

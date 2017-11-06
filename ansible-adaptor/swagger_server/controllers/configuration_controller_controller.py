@@ -22,8 +22,7 @@ def configuration_get():
         drvName, drvVer = cfg.getDriverNameVersion()
         supportedFeatures = cfg.getSupportedFeatures()
         supportedApiVersions = cfg.getSupportedApiVersions()
-        supportedProperties = cfg.getDriverProperties()[0]
-        supportedProperties.update(cfg.getDriverProperties()[1])
+        supportedProperties = cfg.getDriverProperties(None)
     except FileNotFoundError:
         abort(404, 'configuration not found')
 

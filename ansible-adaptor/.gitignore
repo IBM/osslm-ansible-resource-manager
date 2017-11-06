@@ -65,3 +65,5 @@ target/
 
 #shared app files
 ../var_alm_ansible_rm/
+#macOs stuff
+.DS_Store

@@ -48,6 +48,9 @@ class ConfigReader:
             self.supported_features = cfg['driver']['supportedFeatures']
             self.supported_api_version = cfg['driver']['supportedApiVersions']
             self.supported_properties = cfg['driver']['properties']
+            app.logger.debug('config properties ' + str(self.supported_properties) )
+            props = {k: v for d in self.supported_properties for k, v in d.items()}
+            self.supported_properties=props
 
         def getDriverNameVersion(self):
             """ get driver name and version """
@@ -69,9 +72,12 @@ class ConfigReader:
             """ get keypair directory """
             return self.keys_dir
 
-        def getDriverProperties(self):
+        def getDriverProperties(self, property):
             """ get driver properties """
-            return self.supported_properties
+            if property == None:
+                return self.supported_properties
+            else:
+                return self.supported_properties[property]
 
         def getSupportedFeatures(self):
             """ get supported features """

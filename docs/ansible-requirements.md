@@ -1,7 +1,7 @@
 # ansible Playbooks and Roles
 ## Directory Structure
 The RM expects to find your ansible resource types (i.e. your playbooks) in a folder in the _resource_ directory.
-The folder structure MUST correspond to the naming of the resource type in the resrouce descriptor.
+The folder structure MUST correspond to the naming of the resource type in the resource descriptor.
 
 ### Example Resource Type Naming
 Resource descriptor:
@@ -13,11 +13,17 @@ Folder structure:
 resources
     myres
        1.1
-          myplaybooks.yml
+          lifecycle/myplaybooks.yml
+          descriptor/mydescriptor.yml
 ```
 
+These sub-folders **MUST** exist for every resource:
+* lifecycle  -  holds all playbooks and roles for all operations
+* descriptor - holds your resource descriptor
+
+
 ## Naming
-You **MUST** provide a playbook for each lifecycle transaction and each operation that is specified in your resource de.
+You **MUST** provide a playbook for each lifecycle transaction and each operation that is specified in your resource descriptor.
 Playbooks can make use of roles. The top-level playbook naming is like this:
 ```
 <name of operation>.yml

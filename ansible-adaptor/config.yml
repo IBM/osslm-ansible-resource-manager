@@ -4,10 +4,10 @@ driver:
   supportedApiVersions:
     - "1.0"
   supportedFeatures:
-    AsynchronousTransitionResponses: false
+    AsynchronousTransitionResponses: true
   properties:
-    - responseKafkaConnectionUrl: zookeeper://localhost:2181
-    - responseKafkaTopicName: lm-responses\
+    - responseKafkaConnectionUrl: "kafka:9092"
+    - responseKafkaTopicName: "docker-rm"
 ansible:
   resource_dir: "/var/alm_ansible_rm/resources"
   keys_dir: "/var/alm_ansible_rm/keys"

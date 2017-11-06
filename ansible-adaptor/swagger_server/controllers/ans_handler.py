@@ -16,7 +16,8 @@ from ansible.utils.display import Display
 from ansible.plugins import callback_loader
 from ansible.plugins.callback import CallbackBase
 from flask import current_app as app
-
+from .ans_kafka import *
+from swagger_server.models.transition_request import TransitionRequest
 
 
 class OutputCallback(CallbackBase):
@@ -40,7 +41,6 @@ class OutputCallback(CallbackBase):
         self.properties = {}
         self.internal_resource_instances = []
 
-
     def v2_runner_on_unreachable(self, result, ignore_errors=False):
         """
         ansible task failed as host was unreachable
@@ -50,7 +50,6 @@ class OutputCallback(CallbackBase):
         self.logger.debug(result._result)
         self.logger.info('ansible playbook - host unreachable ' + str(self.host_unreachable_log))
         self.host_unreachable = True
-
 
     def v2_runner_on_ok(self, result, *args, **kwargs):
         """
@@ -83,18 +82,16 @@ class OutputCallback(CallbackBase):
             elif 'INTERNAL_RESOURCE' in task:
                 # remove the type element
                 int_resource = {}
-                #build the dict of all internal resource properties
+                # build the dict of all internal resource properties
                 for i in self.facts['msg']:
-                    int_resource.update(dict(item.split(':', maxsplit=1)
-                                             for item in i.replace(' ', '').split(',')))
-                #add the new internal resource to the list
+                    int_resource.update(dict(item.split(':', maxsplit=1) for item in i.replace(' ', '').split(',')))
+                # add the new internal resource to the list
                 self.internal_resource_instances.append(int_resource)
                 self.logger.info('internal resources reported')
                 self.logger.debug('interal resources are : ' + str(int_resource))
 
             else:
                 self.logger.warning('unsupported output type found in ansible playbook')
-
 
     def v2_runner_on_failed(self, result, *args, **kwargs):
         """
@@ -209,6 +206,7 @@ class Runner(object):
         self.request_id = request_id
         self.started_at = started_at
         self.finished_at = None
+        self.resInstance = {}
 
         self.options = Options()
         self.options.private_key_file = private_key_file
@@ -259,8 +257,9 @@ class Runner(object):
             passwords=passwords
         )
 
-        if isinstance(self.transition_request, dict):
+        if (self.transition_request) and (isinstance(self.transition_request, TransitionRequest)):
             # log only if transition request, not for netowrk/image scans)
+            self.logger.debug('transition request ' + str(self.transition_request))
             self.log_request_status('PENDING', 'playbook initialized', '')
 
         self.logger.info('ansible runbook executor instantiated for ' + str(playbook))
@@ -310,14 +309,14 @@ class Runner(object):
                 self.logger.debug(str(self.callback.properties))
 
                 properties = dict(set(prop_output.items()) - set(self.location.items()))
-                self.logger.debug('properties: '+ str(properties))
+                self.logger.debug('properties: ' + str(properties))
 
                 self.logger.debug('creating instance')
-                self.create_instance(resource_id, properties, internal_resources)
+                self.resInstance = self.create_instance(resource_id, properties, internal_resources, self.transition_request.metric_key)
 
             elif self.transition_request.transition_name == 'Uninstall':
                 self.logger.debug('deleting instance')
-                self.delete_instance(resource_id, self.transition_request.deployment_location )
+                self.delete_instance(resource_id, self.transition_request.deployment_location)
 
             self.log_request_status('COMPLETED', 'Done in ' + str((self.finished_at - self.started_at).total_seconds()) + ' seconds', resource_id)
             return
@@ -335,7 +334,7 @@ class Runner(object):
 
     def log_request_status(self, status, reason, resource_id):
         """
-        write log status to file or push to kafka
+        write log status to db or push to kafka
         """
         self.logger.info('working on status '+status)
         is_async_mode = self.config.getSupportedFeatures()['AsynchronousTransitionResponses']
@@ -354,19 +353,28 @@ class Runner(object):
         else:
             resource_id = None
 
-
         self.logger.info('writing request status to db')
         self.logger.debug('request id '+str(self.request_id))
 
         try:
-            self.dbsession.execute("""
-                INSERT INTO requests (requestId, requestState, requestStateReason, resourceId, startedAt, finishedAt, context)
-                VALUES  (%s, %s, %s, %s, %s, %s, %s)
-                USING TTL """+ str(ttl) +"""
-                 """,
-                (self.request_id, status, reason, resource_id,
-                 started, finished, self.config.getSupportedFeatures())
-                 )
+            if status == 'PENDING':
+                self.dbsession.execute(
+                    """
+                    INSERT INTO requests (requestId, requestState, requestStateReason,startedAt, context)
+                    VALUES  (%s, %s, %s, %s, %s)
+                    USING TTL """ + str(ttl) + """
+                    """,
+                    (self.request_id, status, reason, started, self.config.getSupportedFeatures())
+                    )
+            else:
+                self.dbsession.execute(
+                    """
+                    INSERT INTO requests (requestId, requestState, requestStateReason, resourceId, finishedAt)
+                    VALUES  (%s, %s, %s, %s, %s)
+                    USING TTL """ + str(ttl) + """
+                    """,
+                    (self.request_id, status, reason, resource_id, finished)
+                    )
         except Exception as err:
             # handle any other exception
             self.logger.error(str(err))
@@ -375,14 +383,30 @@ class Runner(object):
         self.logger.info('request logged to DB: ' + str(self.request_id))
 
         if is_async_mode:
-            # call kafka
-            self.logger.critical('is_async_mode mode using kafka is not implemented yet')
+            if (status == 'COMPLETED') or (status == 'FAILED'):
+                # call kafka
+                self.logger.info('async mode and status is '+status)
+                kafkaClient = Kafka(self.logger)
+
+                kmsg = {}
+                kmsg['resourceInstance'] = dict(self.resInstance)
+                kmsg['requestId'] = str(self.request_id)
+                kmsg['resourceManagerId'] = self.transition_request.resource_manager_id
+                kmsg['deploymentLocation'] = self.transition_request.deployment_location
+                kmsg['resourceType'] = self.transition_request.resource_type
+                kmsg['transitionName'] = self.transition_request.transition_name
+                kmsg['context'] = {}
+                kmsg['requestState'] = status
+                kmsg['requestStateReason'] = reason
+                kmsg['startedAt'] = started
+                kmsg['finishedAt'] = finished
+
+                self.logger.debug('sending message to kafka: ' + str(kmsg))
+                kafkaClient.sendLifecycleEvent(kmsg)
 
         return
 
-
-
-    def create_instance(self, resource_id, out_props, internal_resources):
+    def create_instance(self, resource_id, out_props, internal_resources, metric_key):
         """
         save instance details to db
         """
@@ -394,7 +418,8 @@ class Runner(object):
                  'resourceName': self.transition_request.resource_name,
                  'resourceManagerId': self.transition_request.resource_manager_id,
                  'properties': out_props,
-                 'internal_resources': internal_resources}
+                 'internal_resources': internal_resources,
+                 'metricKey': metric_key}
 
         # a little cheating, need to get this from OS
         created_at = self.finished_at.strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -405,14 +430,14 @@ class Runner(object):
                 INSERT INTO instances
                 (resourceId, resourceType, resourceName, resourceManagerId,
                 deploymentLocation, createdAt, lastModifiedAt,
-                properties, internalResourceInstances)
-                VALUES  (%s, %s, %s, %s, %s, %s, %s,%s, %s)
+                properties, internalResourceInstances, metricKey)
+                VALUES  (%s, %s, %s, %s, %s, %s, %s,%s, %s, %s)
                 """,
                 (pitem['resource_id'], pitem['resourceType'],
                 pitem['resourceName'], pitem['resourceManagerId'],
                 pitem['deploymentLocation'], created_at, last_modified_at,
-                pitem['properties'], pitem['internal_resources'])
-                #(uuid.UUID(resource_id), self.transition_request.resource_type, self.transition_request.resource_name, self.transition_request.resource_manager_id, self.transition_request.deployment_location, created_at, last_modified_at, out_props, internal_resources)
+                pitem['properties'], pitem['internal_resources'],
+                pitem['metricKey'])
             )
         except Exception as err:
             # handle any other exception
@@ -421,9 +446,7 @@ class Runner(object):
 
         self.logger.info('instance logged to DB: ' + str(pitem['resource_id']))
         self.logger.debug('instance created ' + str(pitem))
-        return
-
-
+        return pitem
 
     def delete_instance(self, resource_id, deployment_location):
         """
@@ -436,7 +459,7 @@ class Runner(object):
                 DELETE FROM instances
                 WHERE resourceId = %s and deploymentLocation = %s
                 """,
-                [uuid.UUID(resource_id), deployment_location ]
+                [uuid.UUID(resource_id), deployment_location]
             )
         except Exception as err:
             # handle any other exception
