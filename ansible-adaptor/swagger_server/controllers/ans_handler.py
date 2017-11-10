@@ -312,7 +312,7 @@ class Runner(object):
                 self.logger.debug('properties: ' + str(properties))
 
                 self.logger.debug('creating instance')
-                self.resInstance = self.create_instance(resource_id, properties, internal_resources, self.transition_request.metric_key)
+                self.resInstance = self.create_instance(resource_id, properties, internal_resources)
 
             elif self.transition_request.transition_name == 'Uninstall':
                 self.logger.debug('deleting instance')
@@ -406,24 +406,27 @@ class Runner(object):
 
         return
 
-    def create_instance(self, resource_id, out_props, internal_resources, metric_key):
+    def create_instance(self, resource_id, out_props, internal_resources):
         """
         save instance details to db
         """
         self.logger.info('create instance  ' + resource_id)
 
-        pitem = {'resource_id': uuid.UUID(resource_id),
+        # a little cheating, need to get this from OS
+        created_at = self.finished_at.strftime('%Y-%m-%dT%H:%M:%SZ')
+        last_modified_at = created_at
+
+        pitem = {'resourceId': resource_id,
                  'deploymentLocation': self.transition_request.deployment_location,
                  'resourceType': self.transition_request.resource_type,
                  'resourceName': self.transition_request.resource_name,
                  'resourceManagerId': self.transition_request.resource_manager_id,
                  'properties': out_props,
-                 'internal_resources': internal_resources,
-                 'metricKey': metric_key}
-
-        # a little cheating, need to get this from OS
-        created_at = self.finished_at.strftime('%Y-%m-%dT%H:%M:%SZ')
-        last_modified_at = created_at
+                 'internalResourceInstances': internal_resources,
+                 'metricKey': self.transition_request.metric_key,
+                 'createdAt': created_at,
+                 'lastModifiedAt': last_modified_at
+                 }
 
         try:
             self.dbsession.execute("""
@@ -433,18 +436,18 @@ class Runner(object):
                 properties, internalResourceInstances, metricKey)
                 VALUES  (%s, %s, %s, %s, %s, %s, %s,%s, %s, %s)
                 """,
-                (pitem['resource_id'], pitem['resourceType'],
+                (uuid.UUID(pitem['resourceId']), pitem['resourceType'],
                 pitem['resourceName'], pitem['resourceManagerId'],
-                pitem['deploymentLocation'], created_at, last_modified_at,
-                pitem['properties'], pitem['internal_resources'],
-                pitem['metricKey'])
+                pitem['deploymentLocation'], pitem['createdAt'],
+                pitem['lastModifiedAt'], pitem['properties'],
+                pitem['internalResourceInstances'], pitem['metricKey'])
             )
         except Exception as err:
             # handle any other exception
             self.logger.error(str(err))
             raise
 
-        self.logger.info('instance logged to DB: ' + str(pitem['resource_id']))
+        self.logger.info('instance logged to DB: ' + str(pitem['resourceId']))
         self.logger.debug('instance created ' + str(pitem))
         return pitem
 

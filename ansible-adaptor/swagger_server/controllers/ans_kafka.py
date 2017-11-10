@@ -34,7 +34,7 @@ class Kafka:
             self.producer = None
 
     def sendLifecycleEvent(self, msg):
-        self.logger.debug('sending message to kafka '+str(msg))
+        self.logger.debug('message is valid json '+ str(json.dumps(msg)))
 
         # if have a valid producer then send a kafka message, otherwise do nothin
         if self.kproducer is not None:
@@ -46,8 +46,8 @@ class Kafka:
             try:
                 record_metadata = future.get(timeout=10)
                 self.logger.debug('msg metadata: '+str(record_metadata))
-            except KafkaError:
-                # log.exception()
-                pass
+            except KafkaError as err:
+                self.logger.error(str(err))
+
         else:
             self.logger.debug('no valid kafka producer found')
