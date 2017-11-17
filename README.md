@@ -1,7 +1,7 @@
 # ALM Resource Manager for Ansible
 For a more detailed overview and context of this project reference the [opensource service lifecycle management project]( https://github.com/IBM/open-source-service-lifecycle-mgmt/blob/master/README.md)
 
-This project provides a resource manager (RM) for ALM 1.1 based on ansible (see https://www.ansible.com/ ).
+This project provides a resource manager (RM) for ALM 1.2 based on ansible (see https://www.ansible.com/ ).
 
 It uses a plain out-of-the-box ansible, ie. not ansible-tower, so no REST APIs are available.
 The ALM-RM API is built using swagger 2.0, and the python-flask server code generator.
