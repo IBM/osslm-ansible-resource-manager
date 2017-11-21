@@ -292,29 +292,29 @@ class Runner(object):
             resource_id = self.callback.resource_id
             self.logger.debug('resource created id ' + resource_id)
 
-            if self.transition_request.transition_name == 'Install':
+            # if self.transition_request.transition_name == 'Install':
+            # removed, properties and instances are part of every reponse now
+            internal_resources = self.callback.internal_resource_instances
+            self.logger.debug('internal resources ' + str(internal_resources))
 
-                internal_resources = self.callback.internal_resource_instances
-                self.logger.debug('internal resources ' + str(internal_resources))
+            prop_output = {}
+            prop_output.update(self.run_data)
+            prop_output.update(self.callback.properties)
 
-                prop_output = {}
-                prop_output.update(self.run_data)
-                prop_output.update(self.callback.properties)
+            # remove location and ansible variables (hard wired for now :-()
+            del prop_output['user_id']
+            del prop_output['keys_dir']
 
-                # remove location and ansible variables (hard wired for now :-()
-                del prop_output['user_id']
-                del prop_output['keys_dir']
+            self.logger.debug(str(prop_output))
+            self.logger.debug(str(self.callback.properties))
 
-                self.logger.debug(str(prop_output))
-                self.logger.debug(str(self.callback.properties))
+            properties = dict(set(prop_output.items()) - set(self.location.items()))
+            self.logger.debug('properties: ' + str(properties))
 
-                properties = dict(set(prop_output.items()) - set(self.location.items()))
-                self.logger.debug('properties: ' + str(properties))
+            self.logger.debug('creating instance')
+            self.resInstance = self.create_instance(resource_id, properties, internal_resources)
 
-                self.logger.debug('creating instance')
-                self.resInstance = self.create_instance(resource_id, properties, internal_resources)
-
-            elif self.transition_request.transition_name == 'Uninstall':
+            if self.transition_request.transition_name == 'Uninstall':
                 self.logger.debug('deleting instance')
                 self.delete_instance(resource_id, self.transition_request.deployment_location)
 
