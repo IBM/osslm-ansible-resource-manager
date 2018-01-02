@@ -7,7 +7,7 @@ driver:
     AsynchronousTransitionResponses: true
   properties:
     - responseKafkaConnectionUrl: "kafka:9092"
-    - responseKafkaTopicName: "docker-rm"
+    - responseKafkaTopicName: "ansible-rm"
 ansible:
   resource_dir: "/var/alm_ansible_rm/resources"
   keys_dir: "/var/alm_ansible_rm/keys"
