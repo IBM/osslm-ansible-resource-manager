@@ -107,6 +107,12 @@ class CassandraHandler:
                     CREATE INDEX IF NOT EXISTS idx_instances_type
                     ON instances ( resourceType )
                     """)
+
+                session.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_instances_metrickey
+                    ON instances ( metricKey )
+                    """)
+
             except Exception as e:
                 # handle any other exception
                 app.logger.error(str(e))
@@ -158,6 +164,7 @@ class CassandraHandler:
 
                 session.execute("DROP INDEX IF EXISTS idx_instances_id")
                 session.execute("DROP INDEX IF EXISTS idx_instances_type")
+                session.execute("DROP INDEX IF EXISTS idx_instances_metrickey")
                 session.execute("DROP TABLE IF EXISTS alm_ansible.instances")
                 app.logger.info('table instances deleted')
             except Exception as e:

@@ -16,6 +16,7 @@ from .ans_driver_config import ConfigReader
 from .ans_cassandra import CassandraHandler
 from .ans_types import ResourceTypeHandler
 from .ans_locations import LocationHandler
+from .ans_instances import InstanceHandler
 from .ans_handler import Runner
 
 
@@ -76,6 +77,14 @@ class RequestHandler():
         # add properties from the request
         if self.transitionRequest.properties:
             user_data.update(self.transitionRequest.properties)
+
+        # for operations get properties from DB
+        if action not in ('Install', 'Configure', 'Start', 'Stop', 'Uninstall'):
+            app.logger.info('adding lifecycle properties  ')
+            lc_props = InstanceHandler( self.resType, self.resVer, self.transitionRequest.deployment_location  ).get_instance_properties( self.transitionRequest.metric_key )
+            if lc_props:
+                user_data.update(lc_props)
+
         app.logger.debug('playbook variables set: ' + str(user_data))
 
         # creata ansible playbook runner

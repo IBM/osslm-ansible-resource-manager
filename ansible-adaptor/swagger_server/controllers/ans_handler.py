@@ -271,8 +271,9 @@ class Runner(object):
             properties = dict(set(prop_output.items()) - set(self.location.items()))
             self.logger.debug('properties: ' + str(properties))
 
-            self.logger.debug('creating instance')
-            self.resInstance = self.create_instance(resource_id, properties, internal_resources)
+            if self.transition_request.transition_name == 'Install':
+                self.logger.debug('creating instance')
+                self.resInstance = self.create_instance(resource_id, properties, internal_resources)
 
             if self.transition_request.transition_name == 'Uninstall':
                 self.logger.debug('deleting instance')

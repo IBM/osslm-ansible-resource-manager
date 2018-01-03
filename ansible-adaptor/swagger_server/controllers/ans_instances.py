@@ -89,6 +89,31 @@ class InstanceHandler():
         app.logger.debug('instances found: ' + str(pload))
         return 200, 'ok', pload
 
+    def get_instance_properties(self, metricKey):
+        """
+        get properties of one instance
+        """
+
+        app.logger.info('searching for instance with metricKey: ' + metricKey)
+
+        query = """SELECT properties as "properties"
+            FROM instances WHERE metricKey = %s"""
+        rows = self.dbsession.execute(query, [metricKey])
+
+        if rows:
+            for row in rows:
+                if row['properties'] is None:
+                    row['properties'] = {}
+                else:
+                    row['properties'] = dict(row['properties'])
+
+                app.logger.info('resource instance found')
+            app.logger.debug(str(row))
+            return row['properties']
+        else:
+            app.logger.info('no instance found for id: ' + instanceId)
+            return None
+
     def get_instance(self, instanceId):
         """
         get properties of one instance
