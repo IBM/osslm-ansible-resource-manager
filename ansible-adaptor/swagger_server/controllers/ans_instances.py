@@ -111,7 +111,7 @@ class InstanceHandler():
             app.logger.debug(str(row))
             return row['properties']
         else:
-            app.logger.info('no instance found for id: ' + instanceId)
+            app.logger.info('no instance found for metric_key: ' + metricKey)
             return None
 
     def get_instance(self, instanceId):

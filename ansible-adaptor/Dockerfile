@@ -9,6 +9,7 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 
 COPY . /usr/src/app
 COPY ansible.cfg /etc/ansible/
+COPY ans_alm_settings.yml /etc/ansible/
 
 RUN ansible-galaxy install Juniper.junos
 # fixes a bug in the junos libs (for python3)

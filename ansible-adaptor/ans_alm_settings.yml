@@ -1,0 +1,2 @@
+# holds settings for playbooks about ALM infra
+kafkaproxy_ip: 10.0.10.94

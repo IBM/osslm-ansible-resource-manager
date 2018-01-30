@@ -161,13 +161,14 @@ class Runner(object):
                               'sudo',
                               'diff',
                               'private_key_file',
-                              'ansible_python_interpreter'])
+                              'ansible_python_interpreter',
+                              'host_key_checking'])
 
         self.options = Options(connection='ssh',
                                remote_user=None,
                                ack_pass=None,
                                sudo_user=None,
-                               forks=5,
+                               forks=20,
                                sudo=None,
                                ask_sudo_pass=False,
                                verbosity=verbosity,
@@ -182,7 +183,8 @@ class Runner(object):
                                listtags=None,
                                syntax=None,
                                private_key_file=private_key_file,
-                               ansible_python_interpreter = '/usr/bin/python3')
+                               ansible_python_interpreter = '/usr/bin/python3',
+                               host_key_checking=False)
 
 
         # Gets data from YAML/JSON files
@@ -264,6 +266,7 @@ class Runner(object):
             # remove location and ansible variables (hard wired for now :-()
             del prop_output['user_id']
             del prop_output['keys_dir']
+            del prop_output['metric_key']
 
             self.logger.debug(str(prop_output))
             self.logger.debug(str(self.callback.properties))
