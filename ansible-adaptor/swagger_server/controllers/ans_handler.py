@@ -172,7 +172,7 @@ class Runner(object):
                                sudo=None,
                                ask_sudo_pass=False,
                                verbosity=verbosity,
-                               module_path=None,
+                               module_path='/var/alm_ansible_rm/library',
                                become=True,
                                become_method='sudo',
                                become_user='root',
@@ -193,7 +193,7 @@ class Runner(object):
         # create temporary inventory file
         self.hosts = NamedTemporaryFile(delete=False)
         self.hosts.write(b'[run_hosts]\n')
-        self.hosts.write(b'localhost ansible_connection=local ansible_python_interpreter="/usr/bin/env python3"')
+        self.hosts.write(b'localhost ansible_connection=local ansible_python_interpreter="/usr/bin/env python3" host_key_checking=False')
         self.hosts.close()
 
         # set Inventory
