@@ -36,6 +36,10 @@ you can access the swagger API using: http://yourserverip:8080/api/v1.0/resource
 ## Post-install Configuration
 1. launch the swagger API page and
 2. expand the "Driver janitor" section
+3. create required folders in the var_alm_ansible_rm/driver folder:
+  3. keys: to hold openstack key files
+  3. clouds: for your clouds.yaml file
+  3. library: for your 3rd party ansible modules
 
 ### Create the Database Schema
 3. run the "Create database tables" operation

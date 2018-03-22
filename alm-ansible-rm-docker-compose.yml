@@ -3,7 +3,7 @@ networks:
   default:
     ipam:
       config:
-        - subnet: 172.28.0.0/16 
+        - subnet: 172.28.0.0/16
 services:
   alm-ansible-rm-db:
      hostname: ansible-rm-db
@@ -34,6 +34,7 @@ services:
      environment:
        - LOG_LEVEL=DEBUG
        - LOG_FOLDER=/var/alm_ansible_rm/logs
+       - OS_CLIENT_CONFIG_FILE=/var/alm_ansible_rm/clouds/clouds.yaml      
      extra_hosts:
        - "kafka:192.168.63.179"
      depends_on:

@@ -53,6 +53,18 @@ Here is an example of location properties for an openstack tenant:
 }
 ```
 
+This resource manager also supports the openstack python [openstack client config files](https://docs.openstack.org/os-client-config/latest/user/configuration.html for details).
+To use client config:
+1. Name you config file: **clouds.yaml**
+2. Put it in the **var_alm_ansible_rm/driver/clouds** folder
+3. add a property "cloud: cloud_name" to your location. The cloud_name MUST be defined in your clouds.yaml file
+4. Usage in your ansible os_... tasks
+```yaml
+os_server:
+      cloud:  {{ cloud }}
+      name: ...
+```
+
 All location properties are passed to your ansible playbooks.
 So the location properties you need to specify depend on your ansible playbooks (e.g. how you connect to the openstack region). If you playbook connects to locations other than an openstack, just add all required properties to the location properties.
 
