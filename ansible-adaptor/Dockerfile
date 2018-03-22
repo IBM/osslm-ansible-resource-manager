@@ -11,6 +11,8 @@ COPY . /usr/src/app
 COPY ansible.cfg /etc/ansible/
 COPY ans_alm_settings.yml /etc/ansible/
 
+# device handling
+RUN pip3 install --no-cache-dir -r device-requirements.txt
 RUN ansible-galaxy install Juniper.junos
 # fixes a bug in the junos libs (for python3)
 COPY junos_install_config /etc/ansible/roles/Juniper.junos/library/.
