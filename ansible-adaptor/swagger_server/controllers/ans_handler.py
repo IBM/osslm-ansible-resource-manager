@@ -251,11 +251,15 @@ class Runner(object):
         if self.callback.is_run_ok():
             self.logger.info('ansible ran OK')
 
+            if not self.callback.resource_id:
+                self.logger.error('Resource ID MUST be set')
             resource_id = self.callback.resource_id
             self.logger.debug('resource created id ' + resource_id)
 
             # if self.transition_request.transition_name == 'Install':
             # removed, properties and instances are part of every reponse now
+            if not self.callback.internal_resource_instances:
+                self.logger.error('Internal Resources MUST be set')
             internal_resources = self.callback.internal_resource_instances
             self.logger.debug('internal resources ' + str(internal_resources))
 
