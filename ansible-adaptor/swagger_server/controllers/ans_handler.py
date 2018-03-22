@@ -281,10 +281,12 @@ class Runner(object):
             if self.transition_request.transition_name == 'Install':
                 self.logger.debug('creating instance')
                 self.resInstance = self.create_instance(resource_id, properties, internal_resources)
-
-            if self.transition_request.transition_name == 'Uninstall':
+            elif self.transition_request.transition_name == 'Uninstall':
                 self.logger.debug('deleting instance')
                 self.delete_instance(resource_id, self.transition_request.deployment_location)
+            else:
+                self.logger.debug('updating instance properties')
+                self.resInstance = self.update_instance_props(resource_id, properties)
 
             self.log_request_status('COMPLETED', 'Done in ' + str((self.finished_at - self.started_at).total_seconds()) + ' seconds', resource_id)
             return
@@ -417,6 +419,41 @@ class Runner(object):
 
         self.logger.info('instance logged to DB: ' + str(pitem['resourceId']))
         self.logger.debug('instance created ' + str(pitem))
+        return pitem
+
+    def update_instance_props(self, resource_id, out_props):
+        """
+        update instance properties to db
+        """
+        self.logger.info('update instance  ' + resource_id)
+
+        # a little cheating, need to get this from OS
+        created_at = self.finished_at.strftime('%Y-%m-%dT%H:%M:%SZ')
+        last_modified_at = created_at
+
+        pitem = {'resourceId': resource_id,
+                 'properties': out_props,
+                 'deploymentLocation': self.transition_request.deployment_location,
+                 'lastModifiedAt': last_modified_at
+                 }
+
+        try:
+            self.dbsession.execute("""
+                UPDATE instances
+                SET
+                lastModifiedAt=%s,
+                properties=%s
+                WHERE resourceId=%s
+                AND deploymentLocation=%s
+                """,
+                (pitem['lastModifiedAt'],  pitem['properties'], uuid.UUID(pitem['resourceId']),pitem['deploymentLocation'])
+            )
+        except Exception as err:
+            # handle any other exception
+            self.logger.error(str(err))
+            raise
+
+        self.logger.info('instance updated in DB: ' + str(pitem['resourceId']))
         return pitem
 
     def delete_instance(self, resource_id, deployment_location):

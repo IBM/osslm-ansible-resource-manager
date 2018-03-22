@@ -1,7 +1,7 @@
 ---
 swagger: "2.0"
 info:
-  description: "ansile resource manager specification."
+  description: "ansible resource manager specification."
   version: "1.1"
   title: "ALM resource manager for ansible"
   contact:
