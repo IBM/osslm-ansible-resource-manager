@@ -77,6 +77,9 @@ var_alm_ansible_rm/driver
    /logs  - the driver log files
    /resources - put your component packages here
    /keys - keypairs created by the playbooks
+   /licenses - license files for VNFs
+   /libraries - 3rd party ansible modules
+   /clouds - the cloud.yaml file to capture openstack cloud credentials
 ```
 
 # ansible Playbooks and Roles

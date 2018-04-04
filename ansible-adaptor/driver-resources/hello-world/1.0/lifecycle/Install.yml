@@ -12,3 +12,14 @@
       debug:
         msg:
           - "resourceId: {{ ut | to_uuid }} "
+    - name: report INTERNAL_PROPERTIES
+      debug:
+        msg:
+          - "run_count: {{ run_count | int +1 }} "
+      when: run_count is defined
+
+    - name: report INTERNAL_PROPERTIES
+      debug:
+        msg:
+          - "run_count: 1 "
+      when: run_count is not defined

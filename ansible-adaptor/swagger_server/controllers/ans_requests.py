@@ -83,10 +83,12 @@ class RequestHandler():
 #        if action not in ('Install', 'Configure', 'Start', 'Stop', 'Uninstall'):
         if action not in ('Install'):
             app.logger.info('adding lifecycle properties  ')
-            lc_props = InstanceHandler( self.resType, self.resVer, self.transitionRequest.deployment_location  ).get_instance_properties( self.transitionRequest.metric_key )
+            lc_props, lc_intprops = InstanceHandler( self.resType, self.resVer, self.transitionRequest.deployment_location  ).get_instance_properties( self.transitionRequest.metric_key )
             if lc_props:
                 lc_props.update(user_data)
                 user_data.update(lc_props)
+        else:
+            lc_intprops={}
 
 
         app.logger.debug('playbook variables set: ' + str(user_data))
@@ -99,6 +101,7 @@ class RequestHandler():
             private_key_file='',
             become_pass='',
             run_data=user_data,
+            internal_data=lc_intprops,
             location=location,
             request_id=self.requestId,
             started_at=self.startedAt,

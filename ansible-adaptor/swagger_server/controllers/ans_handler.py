@@ -38,6 +38,7 @@ class OutputCallback(CallbackBase):
         # return data, will be filled if run ok
         self.resource_id = None
         self.properties = {}
+        self.internal_properties = {}
         self.internal_resource_instances = []
 
     def v2_runner_on_unreachable(self, result, ignore_errors=False):
@@ -69,14 +70,25 @@ class OutputCallback(CallbackBase):
                                         for item in self.facts['msg'][0].replace(' ', '').split(','))['resourceId']
                 self.logger.info('resource_id reported: ' + str(self.resource_id))
 
-            elif 'PROPERTIES' in task:
+            elif ' PROPERTIES' in task:
                 # collect all properties
+
                 for i in self.facts['msg']:
                     self.properties.update(
                         dict(item.split(':', maxsplit=1)
                              for item in i.replace(' ', '').split(',')))
                 self.logger.info('properties reported')
                 self.logger.debug('properites are: ' + str(self.properties))
+
+            elif 'INTERNAL_PROPERTIES' in task:
+                # collect all internal properties
+
+                for i in self.facts['msg']:
+                    self.internal_properties.update(
+                        dict(item.split(':', maxsplit=1)
+                             for item in i.replace(' ', '').split(',')))
+                self.logger.info('internal properties reported')
+                self.logger.debug('internal properites are: ' + str(self.internal_properties))
 
             elif 'INTERNAL_RESOURCE' in task:
                 # remove the type element
@@ -110,13 +122,14 @@ class OutputCallback(CallbackBase):
         self.logger.info('run was OK: ' + str(success))
         return success
 
+
 class Runner(object):
     """
     wraps ansible playbook execution
     """
 
     def __init__(self, hostnames, playbook,
-                 private_key_file, run_data, location,
+                 private_key_file, run_data, internal_data, location,
                  become_pass, request_id, started_at,
                  config, dbsession, tr, verbosity=5):
 
@@ -129,9 +142,13 @@ class Runner(object):
 
         self.location = location
         self.run_data = run_data
+        self.internal_data = internal_data
+
         self.run_variables = {}
         self.run_variables.update(self.run_data)
         self.run_variables.update(self.location)
+        self.run_variables.update(self.internal_data)
+
         self.logger.debug(str(self.location))
         self.logger.debug(str(self.run_data))
         self.logger.debug(str(self.run_variables))
@@ -186,7 +203,6 @@ class Runner(object):
                                ansible_python_interpreter = '/usr/bin/python3',
                                host_key_checking=False)
 
-
         # Gets data from YAML/JSON files
         self.loader = DataLoader()
 
@@ -207,7 +223,6 @@ class Runner(object):
 
         # Become Pass Needed if not logging in as user root
         passwords = {'become_pass': become_pass}
-
 
         # Setup playbook executor, but don't run until run() called
         self.pbex = playbook_executor.PlaybookExecutor(
@@ -272,21 +287,26 @@ class Runner(object):
             del prop_output['keys_dir']
             del prop_output['metric_key']
 
-            self.logger.debug(str(prop_output))
-            self.logger.debug(str(self.callback.properties))
+            # self.logger.debug(str(prop_output))
+            # self.logger.debug(str(self.callback.properties))
 
-            properties = dict(set(prop_output.items()) - set(self.location.items()))
+            properties = dict(set(prop_output.items()) - set(self.location.items()) )
             self.logger.debug('properties: ' + str(properties))
+
+            internalProperties = self.internal_data
+            internalProperties.update(self.callback.internal_properties)
+            self.logger.debug('internal properties: '+ str(internalProperties))
+
 
             if self.transition_request.transition_name == 'Install':
                 self.logger.debug('creating instance')
-                self.resInstance = self.create_instance(resource_id, properties, internal_resources)
+                self.resInstance = self.create_instance(resource_id, properties, internal_resources, internalProperties)
             elif self.transition_request.transition_name == 'Uninstall':
                 self.logger.debug('deleting instance')
                 self.delete_instance(resource_id, self.transition_request.deployment_location)
             else:
                 self.logger.debug('updating instance properties')
-                self.resInstance = self.update_instance_props(resource_id, properties)
+                self.resInstance = self.update_instance_props(resource_id, properties, internalProperties)
 
             self.log_request_status('COMPLETED', 'Done in ' + str((self.finished_at - self.started_at).total_seconds()) + ' seconds', resource_id)
             return
@@ -376,7 +396,7 @@ class Runner(object):
 
         return
 
-    def create_instance(self, resource_id, out_props, internal_resources):
+    def create_instance(self, resource_id, out_props, internal_resources, internal_properties):
         """
         save instance details to db
         """
@@ -392,6 +412,7 @@ class Runner(object):
                  'resourceName': self.transition_request.resource_name,
                  'resourceManagerId': self.transition_request.resource_manager_id,
                  'properties': out_props,
+                 'internalProperties': internal_properties,
                  'internalResourceInstances': internal_resources,
                  'metricKey': self.transition_request.metric_key,
                  'createdAt': created_at,
@@ -403,13 +424,13 @@ class Runner(object):
                 INSERT INTO instances
                 (resourceId, resourceType, resourceName, resourceManagerId,
                 deploymentLocation, createdAt, lastModifiedAt,
-                properties, internalResourceInstances, metricKey)
-                VALUES  (%s, %s, %s, %s, %s, %s, %s,%s, %s, %s)
+                properties, internalProperties, internalResourceInstances, metricKey)
+                VALUES  (%s, %s, %s, %s, %s, %s, %s, %s,%s, %s, %s)
                 """,
                 (uuid.UUID(pitem['resourceId']), pitem['resourceType'],
                 pitem['resourceName'], pitem['resourceManagerId'],
                 pitem['deploymentLocation'], pitem['createdAt'],
-                pitem['lastModifiedAt'], pitem['properties'],
+                pitem['lastModifiedAt'], pitem['properties'], pitem['internalProperties'],
                 pitem['internalResourceInstances'], pitem['metricKey'])
             )
         except Exception as err:
@@ -421,7 +442,7 @@ class Runner(object):
         self.logger.debug('instance created ' + str(pitem))
         return pitem
 
-    def update_instance_props(self, resource_id, out_props):
+    def update_instance_props(self, resource_id, out_props, internal_properties):
         """
         update instance properties to db
         """
@@ -433,6 +454,7 @@ class Runner(object):
 
         pitem = {'resourceId': resource_id,
                  'properties': out_props,
+                 'internalProperties': internal_properties,
                  'deploymentLocation': self.transition_request.deployment_location,
                  'lastModifiedAt': last_modified_at
                  }
@@ -442,11 +464,12 @@ class Runner(object):
                 UPDATE instances
                 SET
                 lastModifiedAt=%s,
-                properties=%s
+                properties=%s,
+                internalProperties=%s
                 WHERE resourceId=%s
                 AND deploymentLocation=%s
                 """,
-                (pitem['lastModifiedAt'],  pitem['properties'], uuid.UUID(pitem['resourceId']),pitem['deploymentLocation'])
+                (pitem['lastModifiedAt'],  pitem['properties'], pitem['internalProperties'], uuid.UUID(pitem['resourceId']), pitem['deploymentLocation'])
             )
         except Exception as err:
             # handle any other exception
@@ -454,6 +477,7 @@ class Runner(object):
             raise
 
         self.logger.info('instance updated in DB: ' + str(pitem['resourceId']))
+        self.logger.debug('instance updated ' + str(pitem))
         return pitem
 
     def delete_instance(self, resource_id, deployment_location):

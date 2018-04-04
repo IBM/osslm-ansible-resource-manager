@@ -96,7 +96,8 @@ class InstanceHandler():
 
         app.logger.info('searching for instance with metricKey: ' + metricKey)
 
-        query = """SELECT properties as "properties"
+        query = """SELECT properties as "properties",
+            internalProperties as "internalproperties"
             FROM instances WHERE metricKey = %s"""
         rows = self.dbsession.execute(query, [metricKey])
 
@@ -106,12 +107,16 @@ class InstanceHandler():
                     row['properties'] = {}
                 else:
                     row['properties'] = dict(row['properties'])
+                if row['internalproperties'] is None:
+                    row['internalproperties'] = {}
+                else:
+                    row['internalproperties'] = dict(row['internalproperties'])
 
                 app.logger.info('resource instance found')
             app.logger.debug(str(row))
-            return row['properties']
+            return row['properties'], row['internalproperties']
         else:
-            app.logger.info('no instance found for metric_key: ' + metricKey)
+            app.logger.error('no instance found for metric_key: ' + metricKey)
             return None
 
     def get_instance(self, instanceId):
@@ -170,6 +175,7 @@ class InstanceHandler():
                 private_key_file='',
                 become_pass='',
                 run_data=user_data,
+                internal_data={},
                 location=self.location,
                 request_id='',
                 started_at=datetime.now(),
@@ -188,6 +194,7 @@ class InstanceHandler():
                 private_key_file='',
                 become_pass='',
                 run_data=user_data,
+                internal_data={},
                 location=self.location,
                 request_id='',
                 started_at=datetime.now(),

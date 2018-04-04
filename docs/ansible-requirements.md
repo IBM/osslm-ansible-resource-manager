@@ -31,7 +31,7 @@ Playbooks can make use of roles. The top-level playbook naming is like this:
 E.g. Install.yml, Start.yml, ...
 
 ## Resource ID
-Your playboks or roles **MUST** report the resource-id back to the resource manager.
+Your playbooks or roles **MUST** report the resource-id back to the resource manager.
 Therefor each playbook or role **MUST** contain one task, that contains the term "RESOURCE_ID" in its name. It should look like:
 
 ```yaml
@@ -42,7 +42,7 @@ Therefor each playbook or role **MUST** contain one task, that contains the term
 ```
 ## Resource Properites
 **OPTIONALLY** you can report back _PROPERITES_ as a list of key/value pairs. This task can be used multiple times in your playbooks. New properties will simply be appended to the list.
-It is you reponsibility to ensure uniqueness of the property-name.
+It is your responsibility to ensure uniqueness of the property-name.
 
 ```yaml
 - name: report PROPERTIES
@@ -53,8 +53,20 @@ It is you reponsibility to ensure uniqueness of the property-name.
       - "private_ip: {{ private_ip }}"
 
 ```
+## Internal Instance Properites
+**OPTIONALLY** you can report back _INTERNAL_PROPERITES_ as a list of key/value pairs. This task can be used multiple times in your playbooks. New properties will simply be appended to the list. These internal properties are stored in the cassandra DB and added to every transition request for the instance.
+It is your responsibility to ensure uniqueness of the property-name.
+
+```yaml
+- name: report INTERNAL_PROPERTIES
+  debug:
+    msg:
+      - "instance_state: stopped"
+      - "api_token: {{ api_token }}"
+
+```
 ## Internal Resources
-**OPTIONALLY** you can report back _INTERNAL RESOURCES_ . This task can be used multiple times in your playbooks. New internal resources will simply be appended to the list.
+You must report back at least one _INTERNAL RESOURCES_ . This task can be used multiple times in your playbooks. New internal resources will simply be appended to the list.
 Each internal resource is described by
 - name
 - id

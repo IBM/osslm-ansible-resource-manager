@@ -94,6 +94,7 @@ class CassandraHandler:
                     createdAt timestamp,
                     lastModifiedAt timestamp,
                     properties map<text, text>,
+                    internalProperties map<text, text>,
                     internalResourceInstances list<frozen <map <text, text>>>,
                     PRIMARY KEY ( ( deploymentLocation ), resourceId  ))
                     """)
@@ -136,7 +137,8 @@ class CassandraHandler:
             # add sample location for hello world test
             try:
                 session.execute("""
-                   INSERT INTO locations (name, type, description, properties) VALUES ( %s, %s, %s, %s )
+                   INSERT INTO locations (name, type, description, properties)
+                   VALUES ( %s, %s, %s, %s )
                       """, ('world', 'planet', 'a test location', {}))
                 app.logger.info('sample locatiob inserted')
             except Exception as e:
