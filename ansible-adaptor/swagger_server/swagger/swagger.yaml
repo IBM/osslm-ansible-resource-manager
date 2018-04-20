@@ -10,6 +10,9 @@ info:
     name: "Apache 2.0"
     url: "http://www.apache.org/licenses/LICENSE-2.0.html"
 basePath: "/api/v1.0/resource-manager"
+schemes:
+  - http
+  - https
 tags:
 - name: "configuration-controller"
   description: "Configuration Controller"

@@ -47,6 +47,6 @@ if __name__ == '__main__':
         except Exception as err:
             app.app.logger.error(str(err))
 
-    app.add_api('swagger.yaml', arguments={'title': 'ansile resource manager specification.'})
+    app.add_api('swagger.yaml', arguments={'title': 'ansible resource manager specification.'})
     app.app.logger.info('driver starting listening on port 8080')
     app.run(port=8080)
