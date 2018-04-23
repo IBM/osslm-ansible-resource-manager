@@ -1,4 +1,4 @@
-ansible >= 2.4.3
+ansible >= 2.5
 paramiko >= 2.4.1
 shade >= 1.26.0
 connexion >= 1.2
