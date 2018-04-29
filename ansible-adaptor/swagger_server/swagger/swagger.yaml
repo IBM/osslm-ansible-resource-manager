@@ -708,8 +708,19 @@ definitions:
         - "COMPLETED"
         - "CANCELLED"
         - "FAILED"
+      requestStateReason:
+        type: "string"
+      requestFailureCode:
+        type: "string"
       context:
         $ref: "#/definitions/inline_response_202_context"
+    example:
+      requestStateReason: "requestStateReason"
+      requestId: "requestId"
+      requestState: "PENDING"
+      requestFailureCode: "requestFailureCode"
+      context:
+        AsynchronousTransitionResponse: true
   inline_response_200_13:
     properties:
       requestId:
@@ -724,6 +735,8 @@ definitions:
         - "FAILED"
       requestStateReason:
         type: "string"
+      requestFailureCode:
+        type: "string"
       resourceId:
         type: "string"
       startedAt:
@@ -734,3 +747,13 @@ definitions:
         format: "date"
       context:
         $ref: "#/definitions/inline_response_202_context"
+    example:
+      requestStateReason: "requestStateReason"
+      resourceId: "resourceId"
+      requestId: "requestId"
+      requestState: "PENDING"
+      requestFailureCode: "requestFailureCode"
+      context:
+        AsynchronousTransitionResponse: true
+      startedAt: "2000-01-23"
+      finishedAt: "2000-01-23"
