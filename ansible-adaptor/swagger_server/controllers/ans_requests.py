@@ -83,10 +83,18 @@ class RequestHandler():
 #        if action not in ('Install', 'Configure', 'Start', 'Stop', 'Uninstall'):
         if action not in ('Install'):
             app.logger.info('adding lifecycle properties  ')
-            lc_props, lc_intprops = InstanceHandler( self.resType, self.resVer, self.transitionRequest.deployment_location  ).get_instance_properties( self.transitionRequest.metric_key )
+            try:
+                lc_props, lc_intprops = InstanceHandler( self.resType, self.resVer, self.transitionRequest.deployment_location  ).get_instance_properties( self.transitionRequest.metric_key )
+            except Exception as e:
+                # handle insance not found and any other exception
+                app.logger.error(str(e))
+                lc_intprops={}
+                lc_props={}
+
             if lc_props:
                 lc_props.update(user_data)
                 user_data.update(lc_props)
+
         else:
             lc_intprops={}
 
