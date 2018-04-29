@@ -12,6 +12,8 @@ from ansible.parsing.dataloader import DataLoader
 from ansible.vars.manager import VariableManager
 from ansible.inventory.manager import InventoryManager
 from ansible.executor import playbook_executor
+from ansible.module_utils._text import to_bytes
+from ansible.parsing.vault import VaultSecret
 
 from ansible.plugins.callback import CallbackBase
 from flask import current_app as app
@@ -48,7 +50,7 @@ class OutputCallback(CallbackBase):
         self.failed_task = result._task.get_name()
         self.host_unreachable_log.append(dict(task=self.failed_task, result=result._result))
         self.logger.debug(result._result)
-        self.logger.info('ansible playbook - host unreachable ' + str(self.host_unreachable_log))
+        self.logger.info('ansible playbook task host unreachable ' + str(self.host_unreachable_log))
         self.host_unreachable = True
 
     def v2_runner_on_ok(self, result, *args, **kwargs):
@@ -56,7 +58,7 @@ class OutputCallback(CallbackBase):
         ansible task finished ok
         """
         task = result._task.get_name()
-        self.logger.info('ansible playbook - task run OK ' + task)
+        self.logger.info('ansible playbook task finished OK ' + task)
         self.logger.debug(result._result)
         if 'results' in result._result.keys():
             self.facts = result._result['results']
@@ -111,15 +113,27 @@ class OutputCallback(CallbackBase):
         self.host_failed = True
         self.failed_task = result._task.get_name()
         self.host_failed_log.append(dict(task=self.failed_task, result=result._result))
-        self.logger.info('ansible playbook - host failed ' + str(self.host_failed_log))
+        self.logger.info('ansible playbook run host failed ' + str(self.host_failed_log))
         self.logger.debug(result._result)
+
+    def v2_playbook_on_play_start(self, play, *args, **kwargs):
+        """
+        log playbook play start
+        """
+        self.logger.info('ansible playbook play started: '+ play.name)
+
+    def v2_playbook_on_task_start(self, task, is_conditional,*args, **kwargs):
+        """
+        log task start
+        """
+        self.logger.info('ansible playbook task started: ' + task.name )
 
     def is_run_ok(self):
         """
         get overall playbook result (ok i all tasks ran ok)
         """
         success = ((not self.host_unreachable) and (not self.host_failed))
-        self.logger.info('run was OK: ' + str(success))
+        self.logger.info('ansible playbook run finished OK: ' + str(success))
         return success
 
 
@@ -179,7 +193,8 @@ class Runner(object):
                               'diff',
                               'private_key_file',
                               'ansible_python_interpreter',
-                              'host_key_checking'])
+                              'host_key_checking',
+                              'vault_password_file'])
 
         self.options = Options(connection='ssh',
                                remote_user=None,
@@ -200,11 +215,13 @@ class Runner(object):
                                listtags=None,
                                syntax=None,
                                private_key_file=private_key_file,
-                               ansible_python_interpreter = '/usr/bin/python3',
-                               host_key_checking=False)
+                               ansible_python_interpreter='/usr/bin/python3',
+                               host_key_checking=False,
+                               vault_password_file='/etc/ansible/tslvault.txt')
 
         # Gets data from YAML/JSON files
         self.loader = DataLoader()
+        self.loader.set_vault_secrets([('default',VaultSecret(_bytes=to_bytes('TSLDem0')))])
 
         # create temporary inventory file
         self.hosts = NamedTemporaryFile(delete=False)
