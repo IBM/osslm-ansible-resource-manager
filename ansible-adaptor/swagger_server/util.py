@@ -1,6 +1,6 @@
 from typing import GenericMeta
 from datetime import datetime, date
-from six import integer_types, iteritems
+from six import integer_types, iteritems, text_type
 
 
 def _deserialize(data, klass):
@@ -45,7 +45,7 @@ def _deserialize_primitive(data, klass):
     try:
         value = klass(data)
     except UnicodeEncodeError:
-        value = unicode(data)
+        value = text_type(data)
     except TypeError:
         value = data
     return value
