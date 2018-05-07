@@ -70,6 +70,7 @@ class CassandraHandler:
                     requestId UUID,
                     requestState text,
                     requestStateReason text,
+                    requestFailureCode text,
                     resourceId UUID,
                     startedAt timestamp,
                     finishedAt timestamp,

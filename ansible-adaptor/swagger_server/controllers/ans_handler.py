@@ -12,6 +12,8 @@ from ansible.parsing.dataloader import DataLoader
 from ansible.vars.manager import VariableManager
 from ansible.inventory.manager import InventoryManager
 from ansible.executor import playbook_executor
+from ansible.module_utils._text import to_bytes
+from ansible.parsing.vault import VaultSecret
 
 from ansible.plugins.callback import CallbackBase
 from flask import current_app as app
@@ -28,6 +30,7 @@ class OutputCallback(CallbackBase):
         self.host_ok = True
         self.host_unreachable = False
         self.host_failed = False
+        self.playbook_failed = False
         self.host_unreachable_log = []
         self.host_failed_log = []
         self.facts = {}
@@ -40,6 +43,8 @@ class OutputCallback(CallbackBase):
         self.properties = {}
         self.internal_properties = {}
         self.internal_resource_instances = []
+        self.failure_code = ''
+        self.failure_reason = ''
 
     def v2_runner_on_unreachable(self, result, ignore_errors=False):
         """
@@ -47,16 +52,18 @@ class OutputCallback(CallbackBase):
         """
         self.failed_task = result._task.get_name()
         self.host_unreachable_log.append(dict(task=self.failed_task, result=result._result))
-        self.logger.debug(result._result)
-        self.logger.info('ansible playbook - host unreachable ' + str(self.host_unreachable_log))
+        self.logger.debug(str(self.host_unreachable_log))
+        self.logger.info('ansible playbook task host unreachable: ' + self.failed_task)
         self.host_unreachable = True
+        self.failure_reason = 'resource unreachable'
+        self.failure_code = 'RESOURCE_NOT_FOUND'
 
     def v2_runner_on_ok(self, result, *args, **kwargs):
         """
         ansible task finished ok
         """
         task = result._task.get_name()
-        self.logger.info('ansible playbook - task run OK ' + task)
+        self.logger.info('ansible playbook task run OK: ' + task)
         self.logger.debug(result._result)
         if 'results' in result._result.keys():
             self.facts = result._result['results']
@@ -101,6 +108,19 @@ class OutputCallback(CallbackBase):
                 self.logger.info('internal resources reported')
                 self.logger.debug('interal resources are : ' + str(int_resource))
 
+            elif 'FAILURE' in task:
+                # playbook enforces failure
+                failure = {}
+                for i in self.facts['msg']:
+                    failure.update(dict(item.split(':', maxsplit=1) for item in i.replace(' ', '').split(',')))
+
+                self.failure_code = failure['failure_code']
+                self.failure_reason = failure['failure_reason']
+
+                self.playbook_failed = True
+                self.logger.info('failure reported')
+                self.logger.debug('failure code: ' + self.failure_code)
+
             else:
                 self.logger.warning('unsupported output type found in ansible playbook')
 
@@ -111,15 +131,28 @@ class OutputCallback(CallbackBase):
         self.host_failed = True
         self.failed_task = result._task.get_name()
         self.host_failed_log.append(dict(task=self.failed_task, result=result._result))
-        self.logger.info('ansible playbook - host failed ' + str(self.host_failed_log))
-        self.logger.debug(result._result)
+        self.logger.info('ansible playbook run task failed: ' + self.failed_task)
+        self.logger.debug(str(self.host_failed_log))
+        self.failure_reason = 'resource tasks failed'
+
+    def v2_playbook_on_play_start(self, play, *args, **kwargs):
+        """
+        log playbook play start
+        """
+        self.logger.info('ansible playbook play started: '+ play.name)
+
+    def v2_playbook_on_task_start(self, task, is_conditional,*args, **kwargs):
+        """
+        log task start
+        """
+        self.logger.info('ansible playbook task started: ' + task.name )
 
     def is_run_ok(self):
         """
         get overall playbook result (ok i all tasks ran ok)
         """
-        success = ((not self.host_unreachable) and (not self.host_failed))
-        self.logger.info('run was OK: ' + str(success))
+        success = ((not self.host_unreachable) and (not self.host_failed) and (not self.playbook_failed))
+        self.logger.info('ansible playbook run finished OK: ' + str(success))
         return success
 
 
@@ -179,7 +212,8 @@ class Runner(object):
                               'diff',
                               'private_key_file',
                               'ansible_python_interpreter',
-                              'host_key_checking'])
+                              'host_key_checking',
+                              'vault_password_file'])
 
         self.options = Options(connection='ssh',
                                remote_user=None,
@@ -200,11 +234,13 @@ class Runner(object):
                                listtags=None,
                                syntax=None,
                                private_key_file=private_key_file,
-                               ansible_python_interpreter = '/usr/bin/python3',
-                               host_key_checking=False)
+                               ansible_python_interpreter='/usr/bin/python3',
+                               host_key_checking=False,
+                               vault_password_file='/etc/ansible/tslvault.txt')
 
         # Gets data from YAML/JSON files
         self.loader = DataLoader()
+        self.loader.set_vault_secrets([('default',VaultSecret(_bytes=to_bytes('TSLDem0')))])
 
         # create temporary inventory file
         self.hosts = NamedTemporaryFile(delete=False)
@@ -237,7 +273,7 @@ class Runner(object):
         if (self.transition_request) and (isinstance(self.transition_request, TransitionRequest)):
             # log only if transition request, not for netowrk/image scans)
             self.logger.debug('transition request ' + str(self.transition_request))
-            self.log_request_status('PENDING', 'playbook initialized', '')
+            self.log_request_status('PENDING', 'playbook initialized', '', '')
 
         self.logger.info('ansible runbook executor instantiated for ' + str(playbook))
 
@@ -258,7 +294,7 @@ class Runner(object):
         """
         self.logger.info('ansible playbook run started ' + self.started_at.isoformat())
 
-        self.log_request_status('IN_PROGRESS', 'running playbook', '')
+        self.log_request_status('IN_PROGRESS', 'running playbook', '', '')
         self.pbex.run()
         self.finished_at = datetime.now()
         self.logger.info('ansible playbook run finished ' + self.finished_at.isoformat())
@@ -308,7 +344,7 @@ class Runner(object):
                 self.logger.debug('updating instance properties')
                 self.resInstance = self.update_instance_props(resource_id, properties, internalProperties)
 
-            self.log_request_status('COMPLETED', 'Done in ' + str((self.finished_at - self.started_at).total_seconds()) + ' seconds', resource_id)
+            self.log_request_status('COMPLETED', 'Done in ' + str((self.finished_at - self.started_at).total_seconds()) + ' seconds', '', resource_id)
             return
 
         else:
@@ -319,18 +355,18 @@ class Runner(object):
                 last_task = self.callback.failed_task
             else:
                 last_task = 'Unknown'
-            self.log_request_status('FAILED', 'Failed on ' + last_task, '')
+            self.log_request_status('FAILED', last_task + ' ' + self.failure_reason, self.failure_code, '')
             return
 
-    def log_request_status(self, status, reason, resource_id):
+    def log_request_status(self, status, freason, fcode, resource_id):
         """
         write log status to db or push to kafka
         """
-        self.logger.info('working on status '+status)
+        self.logger.info('Logging request status '+status)
         is_async_mode = self.config.getSupportedFeatures()['AsynchronousTransitionResponses']
         ttl = self.config.getTTL()
 
-        self.logger.info('async request mode is ' + str(is_async_mode))
+        #self.logger.info('async request mode is ' + str(is_async_mode))
         if (status == 'COMPLETED') or (status == 'FAILED'):
             finished = self.finished_at.strftime('%Y-%m-%dT%H:%M:%SZ')
         else:
@@ -354,16 +390,16 @@ class Runner(object):
                     VALUES  (%s, %s, %s, %s, %s)
                     USING TTL """ + str(ttl) + """
                     """,
-                    (self.request_id, status, reason, started, self.config.getSupportedFeatures())
+                    (self.request_id, status, freason, started, self.config.getSupportedFeatures())
                     )
             else:
                 self.dbsession.execute(
                     """
-                    INSERT INTO requests (requestId, requestState, requestStateReason, resourceId, finishedAt)
-                    VALUES  (%s, %s, %s, %s, %s)
+                    INSERT INTO requests (requestId, requestState, requestStateReason, requestFailureCode, resourceId, finishedAt)
+                    VALUES  (%s, %s, %s, %s, %s, %s)
                     USING TTL """ + str(ttl) + """
                     """,
-                    (self.request_id, status, reason, resource_id, finished)
+                    (self.request_id, status, freason, fcode, resource_id, finished)
                     )
         except Exception as err:
             # handle any other exception
@@ -387,7 +423,8 @@ class Runner(object):
                 kmsg['transitionName'] = self.transition_request.transition_name
                 kmsg['context'] = {}
                 kmsg['requestState'] = status
-                kmsg['requestStateReason'] = reason
+                kmsg['requestStateReason'] = freason
+                kmsg['requestFailureCode'] = fcode
                 kmsg['startedAt'] = started
                 kmsg['finishedAt'] = finished
 

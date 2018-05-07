@@ -12,7 +12,7 @@ from .ans_driver_config import ConfigReader
 from .ans_locations import LocationHandler
 from .ans_handler import Runner
 from .ans_cassandra import CassandraHandler
-
+from .ans_exceptions import InstanceNotFoundError
 
 class InstanceHandler():
     """
@@ -117,7 +117,7 @@ class InstanceHandler():
             return row['properties'], row['internalproperties']
         else:
             app.logger.error('no instance found for metric_key: ' + metricKey)
-            return None
+            raise InstanceNotFoundError(metricKey,'no instance found for metricKey')
 
     def get_instance(self, instanceId):
         """

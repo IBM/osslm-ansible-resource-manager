@@ -7,6 +7,7 @@ IBM Corporation, 2017, jochen kappel
 import json
 import uuid
 from datetime import datetime
+import pathlib
 from concurrent.futures import ThreadPoolExecutor
 
 from swagger_server.models.inline_response202 import InlineResponse202
@@ -18,6 +19,7 @@ from .ans_types import ResourceTypeHandler
 from .ans_locations import LocationHandler
 from .ans_instances import InstanceHandler
 from .ans_handler import Runner
+from .ans_exceptions import InstanceNotFoundError
 
 
 class RequestHandler():
@@ -49,24 +51,30 @@ class RequestHandler():
         rc, rcMsg, self.resType, self.resVer = ResourceTypeHandler().validate_resource_type(self.transitionRequest.resource_type)
 
         self.playbook_dir = self.config.getResourceDir()+'/'+self.resType+'/'+self.resVer+'/lifecycle/'
-
         if rc != 200:
             app.logger.error('invalid resource type: ' + self.transitionRequest.resource_type +', ' + rcMsg)
-            resp = InlineResponse202(str(self.requestId), 'FAILED', self.config.getSupportedFeatures())
+            resp = InlineResponse202(str(self.requestId), 'FAILED', rcMsg, '', self.config.getSupportedFeatures())
             app.logger.info('request ' + str(self.requestId) + ' FAILED: ' + rcMsg)
             return rc, resp
+
+        # check requested action
+        action = self.transitionRequest.transition_name
+        p = pathlib.Path(self.playbook_dir + action + '.yml')
+        if not p.is_file():
+            resp = InlineResponse202(str(self.requestId), 'FAILED',
+                      'No playbook found for operation'+self.transitionRequest.transition_name,
+                      'RESOURCE_NOT_FOUND',
+                      self.config.getSupportedFeatures())
+            return 404, resp
 
         # check location exists
         app.logger.info('validate location: ' + self.transitionRequest.deployment_location)
         rc, rcMsg, location = LocationHandler().get_location_config(self.transitionRequest.deployment_location)
         if rc != 200:
             app.logger.error('location ' + self.transitionRequest.deployment_location + ' ' + rcMsg)
-            resp = InlineResponse202(str(self.requestId), 'FAILED', self.config.getSupportedFeatures())
+            resp = InlineResponse202(str(self.requestId), 'FAILED', rcMsg, '', self.config.getSupportedFeatures() )
             app.logger.info('request ' + str(self.requestId) + ' FAILED: ' + rcMsg)
             return rc, resp
-
-        # check requested action
-        action = self.transitionRequest.transition_name
 
         # get ansible playbook variables
         app.logger.info('set playbook variables')
@@ -83,10 +91,23 @@ class RequestHandler():
 #        if action not in ('Install', 'Configure', 'Start', 'Stop', 'Uninstall'):
         if action not in ('Install'):
             app.logger.info('adding lifecycle properties  ')
-            lc_props, lc_intprops = InstanceHandler( self.resType, self.resVer, self.transitionRequest.deployment_location  ).get_instance_properties( self.transitionRequest.metric_key )
+            try:
+                lc_props, lc_intprops = InstanceHandler( self.resType, self.resVer, self.transitionRequest.deployment_location  ).get_instance_properties( self.transitionRequest.metric_key )
+            except InstanceNotFoundError as e:
+                resp = InlineResponse202(str(self.requestId), 'FAILED',
+                          e.msg, 'RESOURCE_NOT_FOUND',
+                          self.config.getSupportedFeatures())
+                return 404, resp
+            except Exception as e:
+                # handle instance not found and any other exception
+                app.logger.error(str(e))
+                lc_intprops={}
+                lc_props={}
+
             if lc_props:
                 lc_props.update(user_data)
                 user_data.update(lc_props)
+
         else:
             lc_intprops={}
 
