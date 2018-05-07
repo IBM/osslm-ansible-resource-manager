@@ -7,6 +7,7 @@ IBM Corporation, 2017, jochen kappel
 import json
 from flask import current_app as app
 from kafka import KafkaProducer
+from kafka.errors import KafkaError
 from .ans_driver_config import ConfigReader
 
 
