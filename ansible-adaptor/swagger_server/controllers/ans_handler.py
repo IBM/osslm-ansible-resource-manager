@@ -304,15 +304,18 @@ class Runner(object):
 
             if not self.callback.resource_id:
                 self.logger.error('Resource ID MUST be set')
-            resource_id = self.callback.resource_id
-            self.logger.debug('resource created id ' + resource_id)
+            else:
+                resource_id = self.callback.resource_id
+                self.logger.debug('resource created id ' + resource_id)
 
             # if self.transition_request.transition_name == 'Install':
             # removed, properties and instances are part of every reponse now
             if not self.callback.internal_resource_instances:
                 self.logger.error('Internal Resources MUST be set')
-            internal_resources = self.callback.internal_resource_instances
-            self.logger.debug('internal resources ' + str(internal_resources))
+                internal_resources = []
+            else:
+                internal_resources = self.callback.internal_resource_instances
+                self.logger.debug('internal resources ' + str(internal_resources))
 
             prop_output = {}
             prop_output.update(self.run_data)
@@ -340,9 +343,11 @@ class Runner(object):
             elif self.transition_request.transition_name == 'Uninstall':
                 self.logger.debug('deleting instance')
                 self.delete_instance(resource_id, self.transition_request.deployment_location)
-            else:
+            elif self.transition_request.transition_name in ('Start', 'Stop','Configure','Integrity'):
                 self.logger.debug('updating instance properties')
                 self.resInstance = self.update_instance_props(resource_id, properties, internalProperties)
+            else:
+                self.logger.debug('no instance update for operation ')
 
             self.log_request_status('COMPLETED', 'Done in ' + str((self.finished_at - self.started_at).total_seconds()) + ' seconds', '', resource_id)
             return

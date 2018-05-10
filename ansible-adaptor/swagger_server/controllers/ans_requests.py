@@ -94,6 +94,7 @@ class RequestHandler():
             try:
                 lc_props, lc_intprops = InstanceHandler( self.resType, self.resVer, self.transitionRequest.deployment_location  ).get_instance_properties( self.transitionRequest.metric_key )
             except InstanceNotFoundError as e:
+                app.logger.error('Resource NOT FOUND')
                 resp = InlineResponse202(str(self.requestId), 'FAILED',
                           e.msg, 'RESOURCE_NOT_FOUND',
                           self.config.getSupportedFeatures())
@@ -139,7 +140,7 @@ class RequestHandler():
             executor.submit(runner.run_async)
 
             app.logger.info('request ' + str(self.requestId) + ' PENDING ')
-            resp = InlineResponse202(str(self.requestId), 'PENDING', self.config.getSupportedFeatures())
+            resp = InlineResponse202(str(self.requestId), 'PENDING', '','',self.config.getSupportedFeatures())
             return 202, resp
 
     def get_request(self, requestId):
