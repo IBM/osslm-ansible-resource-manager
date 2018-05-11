@@ -356,11 +356,11 @@ class Runner(object):
             self.logger.info('ansible run failed')
             self.logger.error('ansible error')
 
-            if self.callback.failed_task:
+            if self.callback.failed_task != '':
                 last_task = self.callback.failed_task
             else:
                 last_task = 'Unknown'
-            self.log_request_status('FAILED', last_task + ' ' + self.failure_reason, self.failure_code, '')
+            self.log_request_status('FAILED', last_task + ' ' + self.callback.failure_reason, self.callback.failure_code, '')
             return
 
     def log_request_status(self, status, freason, fcode, resource_id):
