@@ -38,7 +38,7 @@ class RequestHandler():
         """
         self.transitionRequest = tr
         # create request id
-        self.requestId = uuid.uuid1()
+        self.requestId = uuid.uuid4()
         app.logger.debug('creating request with id: ' + str(self.requestId))
         self.startedAt = datetime.now()
 
