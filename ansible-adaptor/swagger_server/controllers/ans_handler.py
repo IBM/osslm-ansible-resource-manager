@@ -356,7 +356,7 @@ class Runner(object):
             self.logger.info('ansible run failed')
             self.logger.error('ansible error')
 
-            if self.callback.failed_task != '':
+            if self.callback.failed_task:
                 last_task = self.callback.failed_task
             else:
                 last_task = 'Unknown'
