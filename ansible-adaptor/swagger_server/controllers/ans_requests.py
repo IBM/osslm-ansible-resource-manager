@@ -136,7 +136,7 @@ class RequestHandler():
         app.logger.info('ansible async playbook start')
 
         with app.app_context():
-            executor = ThreadPoolExecutor(max_workers=4)
+            executor = ThreadPoolExecutor(max_workers=20)
             executor.submit(runner.run_async)
 
             app.logger.info('request ' + str(self.requestId) + ' PENDING ')

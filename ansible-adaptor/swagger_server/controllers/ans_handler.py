@@ -299,14 +299,20 @@ class Runner(object):
         self.finished_at = datetime.now()
         self.logger.info('ansible playbook run finished ' + self.finished_at.isoformat())
 
-        if self.callback.is_run_ok():
-            self.logger.info('ansible ran OK')
+        if self.callback.resource_id:
+            resource_id = self.callback.resource_id
+            self.logger.debug('working on resource id ' + resource_id)
+        else:
+            resource_id = ''
 
-            if not self.callback.resource_id:
-                self.logger.error('Resource ID MUST be set')
-            else:
-                resource_id = self.callback.resource_id
-                self.logger.debug('resource created id ' + resource_id)
+        if ( resource_id=='') and self.transition_request.transition_name in ('Install','Start','Stop','Integrity','Uninstall'):
+            self.logger.error('Resource ID MUST be set')
+            report_failed = True
+            self.callback.failed_task = 'NO resource_id defined'
+
+
+        if self.callback.is_run_ok() and not report_failed:
+            self.logger.info('ansible ran OK')
 
             # if self.transition_request.transition_name == 'Install':
             # removed, properties and instances are part of every reponse now
