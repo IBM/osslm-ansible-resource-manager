@@ -128,12 +128,21 @@ class OutputCallback(CallbackBase):
         """
         ansible task failed
         """
+        task_result=result._result
+        msg=task_result['msg']
+        self.logger.debug('v2_runner_on_failed RESULT:' + str(msg))
+        if 'UNREACHABLE' in msg:
+            self.host_unreachable = True
+            self.failure_reason = 'resource unreachable'
+            self.failure_code = 'RESOURCE_NOT_FOUND'
+        else:
+            self.failure_reason = 'resource tasks failed'
+
         self.host_failed = True
         self.failed_task = result._task.get_name()
         self.host_failed_log.append(dict(task=self.failed_task, result=result._result))
         self.logger.info('ansible playbook run task failed: ' + self.failed_task)
         self.logger.debug(str(self.host_failed_log))
-        self.failure_reason = 'resource tasks failed'
 
     def v2_playbook_on_play_start(self, play, *args, **kwargs):
         """
@@ -299,20 +308,14 @@ class Runner(object):
         self.finished_at = datetime.now()
         self.logger.info('ansible playbook run finished ' + self.finished_at.isoformat())
 
-        if self.callback.resource_id:
-            resource_id = self.callback.resource_id
-            self.logger.debug('working on resource id ' + resource_id)
-        else:
-            resource_id = ''
-
-        if ( resource_id=='') and self.transition_request.transition_name in ('Install','Start','Stop','Integrity','Uninstall'):
-            self.logger.error('Resource ID MUST be set')
-            report_failed = True
-            self.callback.failed_task = 'NO resource_id defined'
-
-
-        if self.callback.is_run_ok() and not report_failed:
+        if self.callback.is_run_ok():
             self.logger.info('ansible ran OK')
+
+            if not self.callback.resource_id:
+                self.logger.error('Resource ID MUST be set')
+            else:
+                resource_id = self.callback.resource_id
+                self.logger.debug('resource created id ' + resource_id)
 
             # if self.transition_request.transition_name == 'Install':
             # removed, properties and instances are part of every reponse now
@@ -392,9 +395,12 @@ class Runner(object):
 
         self.logger.info('writing request status to db')
         self.logger.debug('request id '+str(self.request_id))
+        if status == 'FAILED':
+            self.logger.debug('Reason: ' + freason + ' Failure Code: ' + fcode)
 
         try:
             if status == 'PENDING':
+                self.logger.debug('Writing PENDING request to db')
                 self.dbsession.execute(
                     """
                     INSERT INTO requests (requestId, requestState, requestStateReason,startedAt, context)
@@ -404,6 +410,7 @@ class Runner(object):
                     (self.request_id, status, freason, started, self.config.getSupportedFeatures())
                     )
             else:
+                self.logger.debug('Writing COMPLETED or FAILED request to db')
                 self.dbsession.execute(
                     """
                     INSERT INTO requests (requestId, requestState, requestStateReason, requestFailureCode, resourceId, finishedAt)
