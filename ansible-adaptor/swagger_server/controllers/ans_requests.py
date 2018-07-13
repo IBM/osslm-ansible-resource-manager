@@ -163,7 +163,7 @@ class RequestHandler():
             return 400, 'must provide request id', ''
 
         app.logger.info('request fetched from DB: ' + str(requestId))
-        query = "SELECT requestId, requestState, requestStateReason, resourceId, startedAt, finishedAt FROM requests WHERE requestId = %s"
+        query = "SELECT requestId, requestState, requestStateReason, requestFailureCode, resourceId, startedAt, finishedAt FROM requests WHERE requestId = %s"
         rows = self.dbsession.execute(query, [requestId])
 
         if rows:
@@ -172,6 +172,7 @@ class RequestHandler():
                 pload['requestId'] = str(requestId)
                 pload['startedAt'] = row['startedat'].strftime('%Y-%m-%dT%H:%M:%SZ')
                 pload['requestStateReason'] = row['requeststatereason']
+                pload['requestFailureCode'] = row['requestfailurecode']
                 pload['requestState'] = row['requeststate']
                 if row['finishedat'] is not None:
                     pload['finishedAt'] = row['finishedat'].strftime('%Y-%m-%dT%H:%M:%SZ')
