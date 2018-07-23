@@ -3,3 +3,10 @@
 **/.DS_Store
 var_alm_ansible_rm/**
 **/.linter*
+
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/osslm-ansible-resource-manager.iml
+/.idea/vcs.xml
+/.idea/workspace.xml

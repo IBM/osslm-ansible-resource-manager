@@ -1,6 +1,5 @@
 """
 manage resource instance transition requests
-
 IBM Corporation, 2017, jochen kappel
 """
 
@@ -20,6 +19,9 @@ from .ans_locations import LocationHandler
 from .ans_instances import InstanceHandler
 from .ans_handler import Runner
 from .ans_exceptions import InstanceNotFoundError
+
+import random
+import time
 
 
 class RequestHandler():
@@ -62,9 +64,9 @@ class RequestHandler():
         p = pathlib.Path(self.playbook_dir + action + '.yml')
         if not p.is_file():
             resp = InlineResponse202(str(self.requestId), 'FAILED',
-                      'No playbook found for operation'+self.transitionRequest.transition_name,
-                      'RESOURCE_NOT_FOUND',
-                      self.config.getSupportedFeatures())
+                                     'No playbook found for operation'+self.transitionRequest.transition_name,
+                                     'RESOURCE_NOT_FOUND',
+                                     self.config.getSupportedFeatures())
             return 404, resp
 
         # check location exists
@@ -88,7 +90,7 @@ class RequestHandler():
             user_data.update(self.transitionRequest.properties)
 
         # for operations get properties from DB
-#        if action not in ('Install', 'Configure', 'Start', 'Stop', 'Uninstall'):
+        #        if action not in ('Install', 'Configure', 'Start', 'Stop', 'Uninstall'):
         if action not in ('Install'):
             app.logger.info('adding lifecycle properties  ')
             try:
@@ -96,8 +98,8 @@ class RequestHandler():
             except InstanceNotFoundError as e:
                 app.logger.error('Resource NOT FOUND')
                 resp = InlineResponse202(str(self.requestId), 'FAILED',
-                          e.msg, 'RESOURCE_NOT_FOUND',
-                          self.config.getSupportedFeatures())
+                                         e.msg, 'RESOURCE_NOT_FOUND',
+                                         self.config.getSupportedFeatures())
                 return 404, resp
             except Exception as e:
                 # handle instance not found and any other exception
@@ -130,18 +132,21 @@ class RequestHandler():
             config=self.config,
             dbsession=self.dbsession,
             tr=self.transitionRequest,
-            verbosity=1
+            verbosity=4
         )
 
         app.logger.info('ansible async playbook start')
 
-        with app.app_context():
-            executor = ThreadPoolExecutor(max_workers=20)
-            executor.submit(runner.run_async)
+        # with app.app_context():
+        #     timeDelay = random.randrange(2000, 20000)
+        #     time.sleep(timeDelay/1000)
+        #     executor = ThreadPoolExecutor(max_workers=20)
+        #     executor.submit(runner.run_async)
+        runner.run_async()
 
-            app.logger.info('request ' + str(self.requestId) + ' PENDING ')
-            resp = InlineResponse202(str(self.requestId), 'PENDING', '','',self.config.getSupportedFeatures())
-            return 202, resp
+        app.logger.info('request ' + str(self.requestId) + ' PENDING ')
+        resp = InlineResponse202(str(self.requestId), 'PENDING', '','',self.config.getSupportedFeatures())
+        return 202, resp
 
     def get_request(self, requestId):
         """
@@ -158,7 +163,7 @@ class RequestHandler():
             return 400, 'must provide request id', ''
 
         app.logger.info('request fetched from DB: ' + str(requestId))
-        query = "SELECT requestId, requestState, requestStateReason, resourceId, startedAt, finishedAt FROM requests WHERE requestId = %s"
+        query = "SELECT requestId, requestState, requestStateReason, requestFailureCode, resourceId, startedAt, finishedAt FROM requests WHERE requestId = %s"
         rows = self.dbsession.execute(query, [requestId])
 
         if rows:
@@ -167,6 +172,7 @@ class RequestHandler():
                 pload['requestId'] = str(requestId)
                 pload['startedAt'] = row['startedat'].strftime('%Y-%m-%dT%H:%M:%SZ')
                 pload['requestStateReason'] = row['requeststatereason']
+                pload['requestFailureCode'] = row['requestfailurecode']
                 pload['requestState'] = row['requeststate']
                 if row['finishedat'] is not None:
                     pload['finishedAt'] = row['finishedat'].strftime('%Y-%m-%dT%H:%M:%SZ')
