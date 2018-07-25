@@ -19,5 +19,11 @@ RUN ansible-galaxy install Juniper.junos
 COPY junos_install_config /etc/ansible/roles/Juniper.junos/library/.
 COPY junos_get_config /etc/ansible/roles/Juniper.junos/library/.
 
-EXPOSE 8080
-CMD ["python3","-m", "swagger_server"]
+# multi python process handling
+RUN apt-get update && apt-get install -y supervisor
+RUN mkdir -p /var/log/supervisor
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+EXPOSE 8080 9021
+CMD ["/usr/bin/supervisord"]
+#CMD ["python3","-m", "swagger_server"]

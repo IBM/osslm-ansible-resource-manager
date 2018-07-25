@@ -7,7 +7,7 @@ IBM Corporation, 2017, jochen kappel
 
 import os
 import logging
-from logging.handlers import TimedRotatingFileHandler
+import logging.handlers
 from distutils.dir_util import copy_tree
 from os.path import dirname, abspath
 import connexion
@@ -21,20 +21,14 @@ if __name__ == '__main__':
     log_level = logging.getLevelName(os.environ.get('LOG_LEVEL'))
     if not log_level:
         log_level = 'INFO'
-    log_dir = os.environ.get('LOG_FOLDER')
-    if not log_dir:
-        log_dir = '.'
-    else:
-        if not os.path.isdir(log_dir):
-            os.makedirs(log_dir, exist_ok=True)
 
+    # set socket to send logs to
+    # this is to allow multiple processes logging
+    socketHandler = logging.handlers.SocketHandler('localhost',
+                        logging.handlers.DEFAULT_TCP_LOGGING_PORT)
+    socketHandler.setLevel(log_level)
 
-    # this is set by the dockerfile
-    formatter = logging.Formatter("[%(asctime)s] {%(module)s:%(lineno)d} %(levelname)s - %(message)s")
-    handler = TimedRotatingFileHandler(log_dir + '/almAnsibleDriverLog', when='midnight', interval=1, backupCount=7)
-    handler.setFormatter(formatter)
-    handler.setLevel(log_level)
-    app.app.logger.addHandler(handler)
+    app.app.logger.addHandler(socketHandler)
     app.app.logger.setLevel(log_level)
 
     #copy required resources

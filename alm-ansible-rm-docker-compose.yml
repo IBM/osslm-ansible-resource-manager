@@ -29,12 +29,13 @@ services:
        dockerfile: Dockerfile
      ports:
        - "8080:8080"
+       - "9021:9021"
      volumes:
        - "./var_alm_ansible_rm/driver:/var/alm_ansible_rm"
      environment:
        - LOG_LEVEL=DEBUG
        - LOG_FOLDER=/var/alm_ansible_rm/logs
-       - OS_CLIENT_CONFIG_FILE=/var/alm_ansible_rm/clouds/clouds.yaml      
+       - OS_CLIENT_CONFIG_FILE=/var/alm_ansible_rm/clouds/clouds.yaml
      extra_hosts:
        - "kafka:192.168.63.179"
      depends_on:
