@@ -1,6 +1,0 @@
----
-- name: listst of network instances
-  hosts: localhost
-  roles:
-    - { role: list_networks }
-

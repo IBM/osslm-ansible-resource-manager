@@ -1,5 +1,0 @@
----
-- name: get glance image instance details
-  hosts: localhost
-  roles:
-    - { role: show_image }

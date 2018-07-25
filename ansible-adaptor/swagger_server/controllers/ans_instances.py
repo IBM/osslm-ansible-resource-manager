@@ -41,12 +41,12 @@ class InstanceHandler():
             app.logger.error(rcMsg)
             return rc, rcMsg, ''
 
-        if (self.resType == 'ans-image') and (instanceName is None):
-            app.logger.error('not supported for resource::ans_image')
-            return 404, 'not supported for images. instanceName missing', ''
+        if (self.resType == 'openstack-network') and (instanceName is None):
+            app.logger.error('not supported for resource::openstack-network')
+            return 404, 'not supported for networks. instanceName missing', ''
 
-        app.logger.info('get openstack networks and images')
-        if (self.resType == 'ans-network') or (self.resType == 'ans-image') or (self.resType == 'ans-flavor')or (self.resType == 'ans-keypair'):
+        app.logger.info('get openstack networks')
+        if (self.resType == 'openstack-network'):
             self.scan_instances(instanceName)
 
         pload = []
@@ -166,28 +166,10 @@ class InstanceHandler():
         app.logger.debug('location is ' + str(self.location))
         # get ansible playbook variables
         user_data = {}
-        user_data['user_id'] = self.location['auth_user']
+        user_data['user_id'] = 'ALM'
 
-        if self.resType == 'ans-network':
-            runner = Runner(
-                hostnames='localhost',
-                playbook=self.playbook_dir + 'GetInstances.yml',
-                private_key_file='',
-                become_pass='',
-                run_data=user_data,
-                internal_data={},
-                location=self.location,
-                request_id='',
-                started_at=datetime.now(),
-                config=self.config,
-                dbsession='',
-                tr='SCAN',
-                verbosity=0
-            )
-            app.logger.info('set openstack network fact collector')
-
-        elif self.resType == 'ans-image':
-            user_data['image'] = instanceName
+        if self.resType == 'openstack-network':
+            user_data['network'] = instanceName
             runner = Runner(
                 hostnames='localhost',
                 playbook=self.playbook_dir + 'GetInstance.yml',
@@ -203,58 +185,43 @@ class InstanceHandler():
                 tr='SCAN',
                 verbosity=0
             )
-            app.logger.info('set openstack image fact collector')
+            app.logger.info('set openstack network fact collector')
 
         else:
             app.logger.critical('resource type not supported')
             return
 
         app.logger.info('run openstack facts playbook')
-        jfact, rcOK = runner.run()
-
-
-        facts = json.loads(jfact)
-        app.logger.debug('openstack facts found:' + json.dumps(facts))
-
-        if isinstance(facts, list):
-            flist = facts
-        else:
-            flist = []
-            flist.append(facts)
+        properties, rcOK = runner.run()
+        app.logger.debug('openstack facts found:' + str(properties))
 
         app.logger.info('create instance records from facts')
-        for item in flist:
-            pitem = {}
-            pitem['resourceId'] = item['msg'][0].split('::')[1]
-            pitem['resourceName'] = item['msg'][0].split('::')[0]
-            pitem['resourceType'] = 'resource::' + self.resType + '::' + self.resVer
-            pitem['deploymentLocation'] = self.location_name
-            pitem['resourceManagerId'] = self.config.getDriverName()
 
-            if pitem['resourceId']:
-                pitem['resourceId'] = uuid.UUID(pitem['resourceId'])
-            else:
-                pitem['resourceId'] = None
+        pitem = {}
+        pitem['resourceId'] = properties['id']
+        pitem['resourceName'] = properties['name']
+        pitem['resourceType'] = 'resource::' + self.resType + '::' + self.resVer
+        pitem['deploymentLocation'] = self.location_name
+        pitem['resourceManagerId'] = self.config.getDriverName()
 
-            # a little cheating, need to get this from OS
-            created_at = datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
-            last_modified_at = created_at
+        if pitem['resourceId']:
+            pitem['resourceId'] = uuid.UUID(pitem['resourceId'])
+        else:
+            pitem['resourceId'] = None
 
-            # set properties
-            props = {}
-            props['name'] = pitem['resourceName']
-            props['id'] = str(pitem['resourceId'])
-            app.logger.debug(str(props))
+        # a little cheating, need to get this from OS
+        created_at = datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+        last_modified_at = created_at
 
-            self.dbsession.execute("""
-                INSERT INTO instances
-                (resourceId, resourceType, resourceName, resourceManagerId, deploymentLocation, createdAt, lastModifiedAt, properties )
-                VALUES  ( %s, %s, %s, %s, %s, %s, %s, %s  )
-                """,
-                (pitem['resourceId'], pitem['resourceType'], pitem['resourceName'], pitem['resourceManagerId'], pitem['deploymentLocation'], created_at, last_modified_at, props)
-                )
+        self.dbsession.execute("""
+            INSERT INTO instances
+            (resourceId, resourceType, resourceName, resourceManagerId, deploymentLocation, createdAt, lastModifiedAt, properties )
+            VALUES  ( %s, %s, %s, %s, %s, %s, %s, %s  )
+            """,
+            (pitem['resourceId'], pitem['resourceType'], pitem['resourceName'], pitem['resourceManagerId'], pitem['deploymentLocation'], created_at, last_modified_at, properties)
+            )
 
-            app.logger.info('instance logged to DB: ' + str(pitem['resourceId']))
-            app.logger.debug('resource data: ' + str(pitem))
+        app.logger.info('instance logged to DB: ' + str(pitem['resourceId']))
+        app.logger.debug('resource data: ' + str(pitem))
 
         return

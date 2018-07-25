@@ -1,0 +1,30 @@
+name: "resource::openstack-network::1.0"
+description: "Network resource for references to opensatck networks"
+properties:
+  name:
+    type: "string"
+    description: "name of the network"
+  id:
+    type: "string"
+    description: "uuid of the network"
+    read-only: true
+  subnet_name:
+    type: string
+    description: name of the first subnet
+    read-only: true
+  subnet_id:
+    type: string
+    description: uuid of the first subnet
+    read-only: true
+  subnet_gw:
+    type: string
+    description: subnet GW ip address
+    read-only: true
+  subnet_cidr:
+    type: string
+    description: netmask/cidr of the subnet
+    read-only: true    
+lifecycle:
+- "Install"
+- "Uninstall"
+resource-manager-type: "ansible-rm"

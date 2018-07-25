@@ -310,7 +310,7 @@ class Runner(object):
         """
         self.logger.info('ansible playbook run started')
         self.pbex.run()
-        return json.dumps(self.callback.facts), self.callback.is_run_ok()
+        return self.callback.properties, self.callback.is_run_ok()
 
     def run_async(self):
         """

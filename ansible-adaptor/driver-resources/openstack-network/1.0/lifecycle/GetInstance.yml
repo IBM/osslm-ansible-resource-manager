@@ -1,6 +1,9 @@
 ---
 - name: get netwokr instance details
   hosts: localhost
+  gather_facts: False
+  vars:
+    cloud: MWC@DC1
+    network: 172-18-21-MGMT
   roles:
     - { role: show_network }
-

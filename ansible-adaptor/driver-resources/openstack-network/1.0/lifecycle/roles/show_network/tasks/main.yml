@@ -1,0 +1,33 @@
+- name: Gather facts about a previously created network by name
+  os_networks_facts:
+    cloud: "{{ cloud }}"
+    name:  "{{ network }}"
+
+- name: test network
+  debug:
+    var: openstack_networks
+
+- name: get facts for first subnet
+  os_subnets_facts:
+    cloud: "{{ cloud }}"
+    filters:
+       id: "{{ openstack_networks[0].subnets[0]}}"
+
+- name: test subnet
+  debug:
+    var: openstack_subnets
+
+- name: report RESOURCE_ID
+  debug:
+    msg:
+      - "resourceId: {{ openstack_networks[0].id }}"
+
+- name: report PROPERTIES
+  debug:
+    msg:
+      - "id: {{ openstack_networks[0].id }}"
+      - "name: {{ openstack_networks[0].name }}"
+      - "subnet_id: {{ openstack_subnets[0].id }}"
+      - "subnet_name: {{ openstack_subnets[0].name }}"
+      - "subnet_gw: {{ openstack_subnets[0].gateway_ip }}"
+      - "subnet_cidr: {{ openstack_subnets[0].cidr }}"
