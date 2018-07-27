@@ -1,7 +1,8 @@
 ### pls uncomment if not required
 
 ### required for  junos plugins
-junos-eznc == 2.1.7
+#junos-eznc == 2.1.7
+ncclient >= 0.6.0
 
 ### required for f5 plugins
 f5-sdk == 3.0.14
