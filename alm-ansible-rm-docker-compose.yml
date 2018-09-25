@@ -31,6 +31,7 @@ services:
        - "8080:8080"
      volumes:
        - "./var_alm_ansible_rm/driver:/var/alm_ansible_rm"
+       - "./ansible-adaptor:/usr/src/app"
      environment:
        - LOG_LEVEL=DEBUG
        - LOG_FOLDER=/var/alm_ansible_rm/logs
