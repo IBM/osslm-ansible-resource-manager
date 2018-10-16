@@ -77,18 +77,19 @@ class OutputCallback(CallbackBase):
 
         if 'msg' in self.facts.keys():
 
-            if 'RESOURCE_ID' in task:
-                self.resource_id = dict(item.split(':', maxsplit=1)
-                                        for item in self.facts['msg'][0].replace(' ', '').split(','))['resourceId']
-                self.logger.info('resource_id reported: ' + str(self.resource_id))
+# resource id is copied from metric_key now, no need for self generated anymore
+#                self.resource_id = dict(item.split(':', maxsplit=1)
+#                                        for item in self.facts['msg'][0].replace(' ', '').split(','))['resourceId']
+#                self.logger.info('resource_id reported: ' + str(self.resource_id))
 
-            elif ' PROPERTIES' in task:
+            if ' PROPERTIES' in task:
                 # collect all properties
 
                 for i in self.facts['msg']:
                     self.properties.update(
                         dict(item.split(':', maxsplit=1)
-                             for item in i.replace(' ', '').split(',')))
+#                             for item in i.replace(' ', '').split(',')))
+                             for item in i.replace(' ', '').split('#') ))
                 self.logger.info('properties reported')
                 self.logger.debug('properites are: ' + str(self.properties))
 
@@ -326,11 +327,11 @@ class Runner(object):
         if self.callback.is_run_ok():
             self.logger.info(str(self.request_id) + ': ' + 'ansible ran OK')
 
-            if not self.callback.resource_id:
-                self.logger.error(str(self.request_id) + ': ' + 'Resource ID MUST be set')
-            else:
-                resource_id = self.callback.resource_id
-                self.logger.debug(str(self.request_id) + ': ' + 'resource created id ' + resource_id)
+#            if not self.callback.resource_id:
+#                self.logger.error(str(self.request_id) + ': ' + 'Resource ID MUST be set')
+#            else:
+#            resource_id = self.callback.resource_id
+#            self.logger.debug(str(self.request_id) + ': ' + 'resource created id ' + resource_id)
 
             # if self.transition_request.transition_name == 'Install':
             # removed, properties and instances are part of every reponse now
@@ -345,10 +346,15 @@ class Runner(object):
             prop_output.update(self.run_data)
             prop_output.update(self.callback.properties)
 
+            # set resource_id=metric_key
+            resource_id = prop_output['metric_key']
+            self.logger.debug(str(self.request_id) + ': ' + 'resource created id ' + resource_id)
+
             # remove location and ansible variables (hard wired for now :-()
             del prop_output['user_id']
             del prop_output['keys_dir']
             del prop_output['metric_key']
+            del prop_output['request_id']
 
             # self.logger.debug(str(prop_output))
             # self.logger.debug(str(self.callback.properties))
@@ -373,7 +379,10 @@ class Runner(object):
             else:
                 self.logger.debug(str(self.request_id) + ': ' + 'no instance update for operation ')
 
-            self.log_request_status('COMPLETED', 'Done in ' + str((self.finished_at - self.started_at).total_seconds()) + ' seconds', '', resource_id)
+            if ('protocol' in prop_output) and ( prop_output['protocol'] == 'SOL003'):
+                self.log_request_status('IN_PROGRESS', '', '', resource_id)
+            else:
+                self.log_request_status('COMPLETED', 'Done in ' + str((self.finished_at - self.started_at).total_seconds()) + ' seconds', '', resource_id)
             return
 
         else:

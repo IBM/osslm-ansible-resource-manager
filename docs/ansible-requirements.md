@@ -30,16 +30,6 @@ Playbooks can make use of roles. The top-level playbook naming is like this:
 ```
 E.g. Install.yml, Start.yml, ...
 
-## Resource ID
-Your playbooks or roles **MUST** report the resource-id back to the resource manager.
-Therefor each playbook or role **MUST** contain one task, that contains the term "RESOURCE_ID" in its name. It should look like:
-
-```yaml
-- name: report RESOURCE_ID
-  debug:
-    msg:
-      - "resourceId: {{ os_host['id'] }}"
-```
 ## Resource Properites
 **OPTIONALLY** you can report back _PROPERITES_ as a list of key/value pairs. This task can be used multiple times in your playbooks. New properties will simply be appended to the list.
 It is your responsibility to ensure uniqueness of the property-name.

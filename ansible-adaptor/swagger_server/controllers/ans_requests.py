@@ -85,6 +85,7 @@ class RequestHandler():
         user_data['user_id'] = 'ALM'
         user_data['keys_dir'] = self.config.getKeysDir()
         user_data['metric_key'] = self.transitionRequest.metric_key
+        user_data['request_id'] = self.requestId
         # add properties from the request
         if self.transitionRequest.properties:
             user_data.update(self.transitionRequest.properties)
