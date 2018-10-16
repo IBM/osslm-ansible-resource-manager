@@ -1,5 +1,8 @@
 ### pls uncomment if not required
 
+### required for PaloAlto networks modules
+pan-python == 0.13.0
+
 ### required for  junos plugins
 junos-eznc >= 2.1.7
 jxmlease >= 1.0.1
