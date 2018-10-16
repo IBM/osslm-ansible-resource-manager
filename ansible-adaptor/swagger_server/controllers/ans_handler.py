@@ -88,7 +88,8 @@ class OutputCallback(CallbackBase):
                 for i in self.facts['msg']:
                     self.properties.update(
                         dict(item.split(':', maxsplit=1)
-                             for item in i.replace(' ', '').split(',')))
+#                             for item in i.replace(' ', '').split(',')))
+                             for item in i.replace(' ', '').split('#') ))
                 self.logger.info('properties reported')
                 self.logger.debug('properites are: ' + str(self.properties))
 
@@ -349,6 +350,7 @@ class Runner(object):
             del prop_output['user_id']
             del prop_output['keys_dir']
             del prop_output['metric_key']
+            del prop_output['request_id']
 
             # self.logger.debug(str(prop_output))
             # self.logger.debug(str(self.callback.properties))
@@ -373,7 +375,10 @@ class Runner(object):
             else:
                 self.logger.debug(str(self.request_id) + ': ' + 'no instance update for operation ')
 
-            self.log_request_status('COMPLETED', 'Done in ' + str((self.finished_at - self.started_at).total_seconds()) + ' seconds', '', resource_id)
+            if ('protocol' in prop_output) and ( prop_output['protocol'] == 'SOL003'):
+                self.log_request_status('IN_PROGRESS', '', '', resource_id)
+            else:
+                self.log_request_status('COMPLETED', 'Done in ' + str((self.finished_at - self.started_at).total_seconds()) + ' seconds', '', resource_id)
             return
 
         else:
