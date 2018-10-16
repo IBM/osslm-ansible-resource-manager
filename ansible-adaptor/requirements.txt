@@ -1,8 +1,9 @@
-ansible >= 2.6
-paramiko >= 2.4.1
-shade >= 1.27.0
+ansible >= 2.7.0
+paramiko >= 2.4.2
+shade >= 1.29.0
 connexion >= 1.4
-python_dateutil >= 2.7.2
-setuptools >= 40.0.0
-cassandra-driver >= 3.14
-kafka-python >= 1.4.2
+python_dateutil >= 2.7.3
+setuptools >= 40.4.3
+cassandra-driver >= 3.15.1
+kafka-python >= 1.4.3
+textfsm >= 0.4.1
