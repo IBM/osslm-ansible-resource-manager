@@ -24,6 +24,8 @@ tags:
   description: "Type Controller"
 - name: "driver-additions"
   description: "Driver janitor"
+- name: "onboarding-controller"
+  description: "Onboarding Tasks"
 paths:
   /configuration:
     get:
@@ -69,6 +71,32 @@ paths:
         404:
           description: "Not Found."
       x-swagger-router-controller: "swagger_server.controllers.type_controller_controller"
+    post:
+       tags:
+       - "onboarding-controller"
+       summary: "Upload VNF packages"
+       operationId: "types_upload"
+       consumes:
+       - multipart/form-data
+       parameters:
+       - name: "resource_name"
+         in: formData
+         description: "Unique name for the resource type"
+         required: true
+         type: "string"
+       - name: "resource_version"
+         in: formData
+         description: "version of the resource type"
+         required: true
+         type: "string"
+       - in: formData
+         name: upfile
+         type: file
+         description: The file to upload.
+       responses:
+         200:
+           description: "all ok"
+       x-swagger-router-controller: "swagger_server.controllers.onboarding_controller_controller"
   /types/{name}:
     get:
       tags:
@@ -389,10 +417,6 @@ paths:
           description: "Table truncated"
       x-swagger-router-controller: "swagger_server.controllers.driver_additions_controller"
 definitions:
-  inline_response_200_supportedFeatures:
-    properties:
-      AsynchronousTransitionResponses:
-        type: "boolean"
   inline_response_200_properties:
     properties:
       responseKafkaConnectionUrl:
@@ -401,178 +425,12 @@ definitions:
       responseKafkaTopicName:
         type: "string"
         example: "“lm-responses\""
-  inline_response_200:
-    properties:
-      name:
-        type: "string"
-        example: "ansible-rm"
-      version:
-        type: "string"
-        example: "1.0"
-      supportedApiVersions:
-        type: "array"
-        items:
-          type: "string"
-          example: "1.0"
-      supportedFeatures:
-        $ref: "#/definitions/inline_response_200_7_supportedFeatures"
-      properties:
-        $ref: "#/definitions/inline_response_200_properties"
-  inline_response_200_1:
-    properties:
-      name:
-        type: "string"
-      state:
-        type: "string"
-        enum:
-        - "PUBLISHED"
-        - "UNPUBLISHED"
-        - "DELETED"
-      createdAt:
-        type: "string"
-        format: "date"
-      lastModifiedAt:
-        type: "string"
-        format: "date"
-  inline_response_200_2:
-    properties:
-      name:
-        type: "string"
-      descriptor:
-        type: "string"
-      state:
-        type: "string"
-        enum:
-        - "PUBLISHED"
-        - "UNPUBLISHED"
-        - "DELETED"
-      createdAt:
-        type: "string"
-        format: "date"
-      lastModifiedAt:
-        type: "string"
-        format: "date"
-  inline_response_200_3:
-    properties:
-      name:
-        type: "string"
-      type:
-        type: "string"
-  deploymentLocation:
-    type: "object"
-    properties:
-      type:
-        type: "string"
-      properties:
-        type: "object"
-        properties: {}
-  inline_response_201:
-    properties:
-      name:
-        type: "string"
-      type:
-        type: "string"
-      properties:
-        type: "object"
-        properties: {}
   topologydeploymentlocationsnameinstances_properties:
     properties:
       propertyName:
         type: "string"
       propertyValue:
         type: "string"
-  inline_response_200_4:
-    properties:
-      resourceId:
-        type: "string"
-      resourceName:
-        type: "string"
-      resourceType:
-        type: "string"
-      resourceManagerId:
-        type: "string"
-      deploymentLocation:
-        type: "string"
-      properties:
-        $ref: "#/definitions/topologydeploymentlocationsnameinstances_properties"
-      createdAt:
-        type: "string"
-        format: "date"
-      lastModifiedAt:
-        type: "string"
-        format: "date"
-  transitionRequest:
-    type: "object"
-    properties:
-      resourceManagerId:
-        type: "string"
-      deploymentLocation:
-        type: "string"
-      resourceType:
-        type: "string"
-      transitionName:
-        type: "string"
-      resourceName:
-        type: "string"
-      metricKey:
-        type: "string"
-      context:
-        type: "object"
-        properties: {}
-      properties:
-        type: "object"
-        properties: {}
-  inline_response_201_1_context:
-    properties:
-      AsynchronousTransitionResponse:
-        type: "boolean"
-  inline_response_201_1:
-    properties:
-      requestId:
-        type: "string"
-      requestState:
-        type: "string"
-        enum:
-        - "PENDING"
-        - "IN_PROGRESS"
-        - "COMPLETED"
-        - "CANCELLED"
-        - "FAILED"
-      context:
-        $ref: "#/definitions/inline_response_202_context"
-  inline_response_200_5:
-    properties:
-      requestId:
-        type: "string"
-      requestState:
-        type: "string"
-        enum:
-        - "PENDING"
-        - "IN_PROGRESS"
-        - "COMPLETED"
-        - "CANCELLED"
-        - "FAILED"
-      requestStateReason:
-        type: "string"
-      resourceId:
-        type: "string"
-      startedAt:
-        type: "string"
-        format: "date"
-      finishedAt:
-        type: "string"
-        format: "date"
-      context:
-        $ref: "#/definitions/inline_response_202_context"
-  inline_response_200_6:
-    properties:
-      name:
-        type: "string"
-      type:
-        type: "string"
-      properties:
-        type: "object"
-        properties: {}
   inline_response_200_7_supportedFeatures:
     properties:
       AsynchronousTransitionResponses:

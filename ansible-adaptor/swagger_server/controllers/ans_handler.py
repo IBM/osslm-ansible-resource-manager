@@ -354,7 +354,9 @@ class Runner(object):
             del prop_output['user_id']
             del prop_output['keys_dir']
             del prop_output['metric_key']
-            del prop_output['request_id']
+
+            if 'request_id' in prop_output:
+                del prop_output['request_id']
 
             # self.logger.debug(str(prop_output))
             # self.logger.debug(str(self.callback.properties))
