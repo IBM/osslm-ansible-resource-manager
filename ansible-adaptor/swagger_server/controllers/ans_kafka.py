@@ -9,6 +9,7 @@ from flask import current_app as app
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 from .ans_driver_config import ConfigReader
+from .ans_kafka_topic import *
 
 
 class Kafka:
@@ -17,7 +18,7 @@ class Kafka:
     """
     def __init__(self, logger):
         """
-        initialize, get configurat
+        initialize, get configuration
         """
         self.logger = logger
         self.kproducer = None
@@ -25,13 +26,19 @@ class Kafka:
         self.config = ConfigReader()
         self.kafkaUrl = self.config.getDriverProperties('responseKafkaConnectionUrl')
         self.kafkaTopic = self.config.getDriverProperties('responseKafkaTopicName')
-        self.logger.debug('Trying to setup kafka producer on: '+self.kafkaUrl+', topic: ' + self.kafkaTopic)
 
         try:
             self.kproducer = KafkaProducer(bootstrap_servers=self.kafkaUrl, value_serializer=lambda m: json.dumps(m).encode('ascii'), api_version=(0, 10))
             self.logger.info('kafka producer is up')
         except Exception as e:
             self.logger.error('could not connect to kafka server at ' + self.kafkaUrl+' no messages will be published')
+            self.producer = None
+
+        try:
+            ensure_topic( topic=self.kafkaTopic, num_partitions=1, brokers=self.kafkaUrl,
+                           logger=self.logger )
+        except Exception as e:
+            self.logger.error('could not create kafka topic at ' + self.kafkaUrl)
             self.producer = None
 
     def sendLifecycleEvent(self, msg):

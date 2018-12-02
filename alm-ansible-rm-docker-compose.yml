@@ -37,6 +37,6 @@ services:
        - LOG_FOLDER=/var/alm_ansible_rm/logs
        - OS_CLIENT_CONFIG_FILE=/var/alm_ansible_rm/clouds/clouds.yaml
      extra_hosts:
-       - "kafka:192.168.64.39"
+       - "kafka:192.168.61.64"
      depends_on:
        - alm-ansible-rm-db

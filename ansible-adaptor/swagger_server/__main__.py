@@ -13,6 +13,8 @@ from os.path import dirname, abspath
 import connexion
 from .encoder import JSONEncoder
 from .controllers.ans_driver_config import ConfigReader
+from .controllers.ans_kafka import Kafka
+
 
 if __name__ == '__main__':
     app = connexion.App(__name__, specification_dir='./swagger/')
@@ -41,6 +43,7 @@ if __name__ == '__main__':
         except Exception as err:
             app.app.logger.error(str(err))
 
+    k = Kafka(app.app.logger)
     app.add_api('swagger.yaml', arguments={'title': 'ansible resource manager specification.'})
     app.app.logger.info('driver starting listening on port 8080')
     app.run(port=8080,threaded=False,processes=8)
