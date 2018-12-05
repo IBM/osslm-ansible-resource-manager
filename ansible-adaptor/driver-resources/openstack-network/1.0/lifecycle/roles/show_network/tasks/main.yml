@@ -1,33 +1,35 @@
 - name: Gather facts about a previously created network by name
   os_networks_facts:
     cloud: "{{ cloud }}"
-    name:  "{{ network }}"
+    name:  "{{ instance_name | default('omit') }}"
 
-- name: test network
-  debug:
-    var: openstack_networks
+# - name: test network
+#   debug:
+#     var: openstack_networks
 
-- name: get facts for first subnet
-  os_subnets_facts:
-    cloud: "{{ cloud }}"
-    filters:
-       id: "{{ openstack_networks[0].subnets[0]}}"
+- set_fact:
+    os_netlist: []
 
-- name: test subnet
-  debug:
-    var: openstack_subnets
+- name: do os_subnets
+  include: subnets.yml
+  loop: "{{ openstack_networks }}"
+  loop_control:
+     loop_var: anet
+     index_var: index
 
-- name: report RESOURCE_ID
-  debug:
-    msg:
-      - "resourceId: {{ openstack_networks[0].id }}"
+- name: define keymap
+  set_fact:
+    keymap:
+      - sn_name: subnet_name
+      - sn_id: subnet_id
+      - id: network_id
+      - name: network_name
+      - sn_gw: subnet_gw
+      - sn_cidr: subnet_cidr
+
 
 - name: report PROPERTIES
   debug:
     msg:
-      - "id: {{ openstack_networks[0].id }}"
-      - "name: {{ openstack_networks[0].name }}"
-      - "subnet_id: {{ openstack_subnets[0].id }}"
-      - "subnet_name: {{ openstack_subnets[0].name }}"
-      - "subnet_gw: {{ openstack_subnets[0].gateway_ip }}"
-      - "subnet_cidr: {{ openstack_subnets[0].cidr }}"
+        - "instances: {{ os_netlist | to_json }}"
+        - "mappings: {{ keymap | to_json }}"

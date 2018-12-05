@@ -1,7 +1,7 @@
 name: "resource::openstack-network::1.0"
 description: "Network resource for references to opensatck networks"
 properties:
-  name:
+  instance_name:
     type: "string"
     description: "name of the network"
   id:
@@ -23,7 +23,7 @@ properties:
   subnet_cidr:
     type: string
     description: netmask/cidr of the subnet
-    read-only: true    
+    read-only: true
 lifecycle:
 - "Install"
 - "Uninstall"

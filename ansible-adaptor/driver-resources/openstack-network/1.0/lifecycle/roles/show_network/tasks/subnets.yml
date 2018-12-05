@@ -1,0 +1,20 @@
+- name: do  subnets
+  block:
+
+  - name: get facts for first subnet
+    os_subnets_facts:
+      cloud: "{{ cloud }}"
+      filters:
+        id: "{{ anet.subnets[0]}}"
+
+  # - name: test subnet
+  #   debug:
+  #     var: openstack_subnets
+
+  - name: add item
+    set_fact:
+      os_netlist: "{{ os_netlist + [openstack_networks[index] | combine({'sn_name':openstack_subnets[0].name},
+       {'sn_id':openstack_subnets[0].id}, {'sn_gw':openstack_subnets[0].gateway_ip},
+       {'sn_cidr':openstack_subnets[0].cidr}, {'sn_dhcp':openstack_subnets[0].enable_dhcp}  )] }}"
+
+  when: anet.subnets[0] is defined

@@ -41,52 +41,11 @@ class InstanceHandler():
             app.logger.error(rcMsg)
             return rc, rcMsg, ''
 
-        if (self.resType == 'openstack-network') and (instanceName is None):
-            app.logger.error('not supported for resource::openstack-network')
-            return 404, 'not supported for networks. instanceName missing', ''
+        if self.resType != '':
+            self.get_instance_from_vim(instanceName)
 
-        app.logger.info('get openstack networks')
-        if (self.resType == 'openstack-network'):
-            self.scan_instances(instanceName)
+        pload = self.get_instances_from_db(instanceName)
 
-        pload = []
-        # search for instances in the inventory folder
-        app.logger.info('search for instances ')
-
-        select = """SELECT resourceId as "resourceId",
-             resourceName as "resourceName",
-             resourceType as "resourceType",
-             resourceManagerId as "resourceManagerId",
-             deploymentLocation as "deploymentLocation",
-             createdAt as "createdAt",
-             lastModifiedAt as "lastModifiedAt",
-             properties as "properties"
-             FROM instances """
-        if self.resType == '':
-            query = select + " WHERE deploymentLocation = %s"
-            rows = self.dbsession.execute(query, [self.location_name])
-        else:
-            query = select + "WHERE deploymentLocation = %s AND resourceType = %s"
-            rows = self.dbsession.execute(query, [self.location_name, 'resource::'+self.resType+'::' + self.resVer])
-
-        # app.logger.debug('found rows: ' + str(len(rows)))
-        for row in rows:
-            if row['properties'] is None:
-                row['properties'] = {}
-            else:
-                row['properties'] = dict(row['properties'])
-
-            row['resourceId'] = str(row['resourceId'])
-            row['createdAt'] = row['createdAt'].strftime('%Y-%m-%dT%H:%M:%SZ')
-            row['lastModifiedAt'] = row['lastModifiedAt'].strftime('%Y-%m-%dT%H:%M:%SZ')
-
-            if instanceName is None:
-                pload.append(row)
-            elif instanceName in row['resourceName']:
-                pload.append(row)
-
-        app.logger.info(str(len(pload)) + ' instances found')
-        app.logger.debug('instances found: ' + str(pload))
         return 200, 'ok', pload
 
     def get_instance_properties(self, metricKey):
@@ -157,9 +116,55 @@ class InstanceHandler():
             app.logger.info('no instance found for id: ' + instanceId)
             return 404, ''
 
-    def scan_instances(self, instanceName):
+
+    def get_instances_from_db(self, instanceName=None):
+        pload = []
+        # search for instances in the inventory folder
+        app.logger.info('search for instances ')
+
+        select = """SELECT resourceId as "resourceId",
+             resourceName as "resourceName",
+             resourceType as "resourceType",
+             resourceManagerId as "resourceManagerId",
+             deploymentLocation as "deploymentLocation",
+             createdAt as "createdAt",
+             lastModifiedAt as "lastModifiedAt",
+             properties as "properties"
+             FROM instances """
+        if self.resType == '':
+            query = select + " WHERE deploymentLocation = %s"
+            rows = self.dbsession.execute(query, [self.location_name])
+            app.logger.debug('searching all resources for a location '+self.location_name)
+        else:
+            query = select + "WHERE deploymentLocation = %s AND resourceType = %s"
+            rows = self.dbsession.execute(query, [self.location_name, 'resource::'+self.resType+'::' + self.resVer])
+            app.logger.debug('searching location '+self.location_name+' for resource type '+self.resType+'::' + self.resVer)
+
+        if rows:
+            for row in rows:
+                if row['properties'] is None:
+                    row['properties'] = {}
+                else:
+                    row['properties'] = dict(row['properties'])
+
+                row['resourceId'] = str(row['resourceId'])
+                row['createdAt'] = row['createdAt'].strftime('%Y-%m-%dT%H:%M:%SZ')
+                row['lastModifiedAt'] = row['lastModifiedAt'].strftime('%Y-%m-%dT%H:%M:%SZ')
+
+                if instanceName is None:
+                    pload.append(row)
+                elif instanceName in row['resourceName']:
+                    app.logger.debug('YES! ' + instanceName + ' is part of '+row['resourceName'])
+                    pload.append(row)
+
+        app.logger.info(str(len(pload)) + ' instances found')
+        app.logger.debug('instances found: ' + str(pload))
+
+        return pload
+
+    def get_instance_from_vim(self, instanceName):
         """
-        scan openstack for instances of a given type
+        get instance details from VIM
         """
         if instanceName:
             app.logger.info('scanning for instance ' + instanceName)
@@ -167,61 +172,61 @@ class InstanceHandler():
         # get ansible playbook variables
         user_data = {}
         user_data['user_id'] = 'ALM'
+        user_data['instance_name'] = instanceName
 
-        if self.resType == 'openstack-network':
-            user_data['network'] = instanceName
-            runner = Runner(
-                hostnames='localhost',
-                playbook=self.playbook_dir + 'GetInstance.yml',
-                private_key_file='',
-                become_pass='',
-                run_data=user_data,
-                internal_data={},
-                location=self.location,
-                request_id='',
-                started_at=datetime.now(),
-                config=self.config,
-                dbsession='',
-                tr='SCAN',
-                verbosity=0
-            )
-            app.logger.info('set openstack network fact collector')
+        runner = Runner(
+            hostnames='localhost',
+            playbook=self.playbook_dir + 'GetInstance.yml',
+            private_key_file='',
+            become_pass='',
+            run_data=user_data,
+            internal_data={},
+            location=self.location,
+            request_id='',
+            started_at=datetime.now(),
+            config=self.config,
+            dbsession='',
+            tr='SCAN',
+            verbosity=0
+        )
 
-        else:
-            app.logger.critical('resource type not supported')
-            return
-
-        app.logger.info('run openstack facts playbook')
+        app.logger.info('run vim facts playbook')
         properties, rcOK = runner.run()
-        app.logger.debug('openstack facts found:' + str(properties))
-
+        app.logger.debug('vim facts found:' + str(properties['instances']))
         app.logger.info('create instance records from facts')
+        jprop = json.loads(properties['instances'])
+        keymap = json.loads(properties['mappings'])
 
-        pitem = {}
-        pitem['resourceId'] = properties['id']
-        pitem['resourceName'] = properties['name']
-        pitem['resourceType'] = 'resource::' + self.resType + '::' + self.resVer
-        pitem['deploymentLocation'] = self.location_name
-        pitem['resourceManagerId'] = self.config.getDriverName()
+        for i in jprop:
+            pitem = {}
+            app.logger.debug(str(i))
+            pitem['resourceId'] = i['id']
+            pitem['resourceName'] = i['name']
+            pitem['resourceType'] = 'resource::' + self.resType + '::' + self.resVer
+            pitem['deploymentLocation'] = self.location_name
+            pitem['resourceManagerId'] = self.config.getDriverName()
 
-        if pitem['resourceId']:
             pitem['resourceId'] = uuid.UUID(pitem['resourceId'])
-        else:
-            pitem['resourceId'] = None
 
-        # a little cheating, need to get this from OS
-        created_at = datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
-        last_modified_at = created_at
+            # map properties
+            pitem['props'] = {}
+            for km in keymap:
+                for k in km.keys():
+                    pitem['props'][km[k]] = i[k]
+                    app.logger.debug(str(pitem['props']))
 
-        self.dbsession.execute("""
-            INSERT INTO instances
-            (resourceId, resourceType, resourceName, resourceManagerId, deploymentLocation, createdAt, lastModifiedAt, properties )
-            VALUES  ( %s, %s, %s, %s, %s, %s, %s, %s  )
-            """,
-            (pitem['resourceId'], pitem['resourceType'], pitem['resourceName'], pitem['resourceManagerId'], pitem['deploymentLocation'], created_at, last_modified_at, properties)
-            )
+            # a little cheating, need to get this from OS
+            created_at = datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+            last_modified_at = created_at
 
-        app.logger.info('instance logged to DB: ' + str(pitem['resourceId']))
-        app.logger.debug('resource data: ' + str(pitem))
+            self.dbsession.execute("""
+                INSERT INTO instances
+                (resourceId, resourceType, resourceName, resourceManagerId, deploymentLocation, createdAt, lastModifiedAt, properties )
+                VALUES  ( %s, %s, %s, %s, %s, %s, %s, %s  )
+                """,
+                (pitem['resourceId'], pitem['resourceType'], pitem['resourceName'], pitem['resourceManagerId'], pitem['deploymentLocation'], created_at, last_modified_at, pitem['props'])
+                )
+
+            app.logger.info('instance logged to DB: ' + str(pitem['resourceId']))
 
         return
