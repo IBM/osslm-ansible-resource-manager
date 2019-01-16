@@ -1,0 +1,9 @@
+dependencies:
+  - name: cassandra
+    version: 0.4.1
+    repository: https://kubernetes-charts-incubator.storage.googleapis.com/
+    condition: cassandra.enabled
+  - name: kafka
+    version: 0.8.5
+    repository: https://kubernetes-charts-incubator.storage.googleapis.com/
+    condition: kafka.enabled

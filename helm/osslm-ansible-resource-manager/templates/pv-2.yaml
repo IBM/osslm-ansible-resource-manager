@@ -1,0 +1,18 @@
+{{- if .Values.createVolumes }}
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: local-vol2
+  labels:
+    type: local
+    createdBy: osslm-ansible-rm
+spec:
+  storageClassName: manual
+  capacity:
+    storage: {{ .Values.kafka.persistence.size }}
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    type: Directory
+    path: /var/lib/osslm/vol-2
+{{ end }}

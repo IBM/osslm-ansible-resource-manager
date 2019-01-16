@@ -1,0 +1,18 @@
+{{- if .Values.createVolumes }}
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: local-vol1
+  labels:
+    type: local
+    createdBy: osslm-ansible-rm
+spec:
+  storageClassName: manual
+  capacity:
+    storage: {{ .Values.cassandra.persistence.size }}
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    type: Directory
+    path: /var/lib/osslm/vol-1
+{{ end }}

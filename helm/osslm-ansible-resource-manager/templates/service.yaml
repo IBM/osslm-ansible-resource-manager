@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: osslm-ansible-rm
+  labels:
+    app: osslm-ansible-rm
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  - port: 8080
+    targetPort: 8080
+{{- if eq .Values.service.type "NodePort" }}
+    nodePort: {{ .Values.service.nodePort }}
+{{- end }}
+    protocol: TCP
+    name: http
+  selector:
+    app: osslm-ansible-rm

@@ -1,0 +1,9 @@
+dependencies:
+- name: cassandra
+  repository: https://kubernetes-charts-incubator.storage.googleapis.com/
+  version: 0.4.1
+- name: kafka
+  repository: https://kubernetes-charts-incubator.storage.googleapis.com/
+  version: 0.8.5
+digest: sha256:ea9468f1bc5f2815e2706308f294d0640017b8cdbed3c8cc91cea7733ac68d77
+generated: 2018-11-15T16:40:54.789744Z
