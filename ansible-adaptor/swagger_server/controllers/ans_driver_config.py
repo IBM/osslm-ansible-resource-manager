@@ -27,6 +27,8 @@ class ConfigReader:
             self.driver_name = cfg['driver']['name']
             self.driver_version = cfg['driver']['version']
             self.requests_ttl = cfg['cassandra']['ttl']
+            self.cassandra_uri = cfg['cassandra']['uri']
+            self.logging_type = cfg['logging']['type']
 
             self.resource_dir = cfg['ansible']['resource_dir']
             app.logger.debug('check for resource folder: ' + self.resource_dir)

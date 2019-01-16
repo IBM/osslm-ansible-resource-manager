@@ -8,8 +8,15 @@ driver:
   properties:
     - responseKafkaConnectionUrl: "kafka:9092"
     - responseKafkaTopicName: "ansible-rm"
+logging:
+  type: text
+#  type: logstash
 ansible:
   resource_dir: "/var/alm_ansible_rm/resources"
   keys_dir: "/var/alm_ansible_rm/keys"
+#  resource_dir: "/Users/stevenglover/src/osslm-ansible-resource-manager/var_alm_ansible_rm/driver/resources"
+#  keys_dir: "/Users/stevenglover/src/osslm-ansible-resource-manager/var_alm_ansible_rm/driver/keys"
 cassandra:
+#  uri: alm-ansible-rm-db
+  uri: 192.168.99.100
   ttl: 86400

@@ -14,14 +14,16 @@ import connexion
 from .encoder import JSONEncoder
 from .controllers.ans_driver_config import ConfigReader
 from .controllers.ans_kafka import Kafka
-
+from .controllers.ans_logging import LogstashFormatterVersion1
+import uuid
+import sys
 
 if __name__ == '__main__':
     app = connexion.App(__name__, specification_dir='./swagger/')
     app.app.json_encoder = JSONEncoder
 
-    log_level = logging.getLevelName(os.environ.get('LOG_LEVEL'))
-    if not log_level:
+    log_level = os.environ.get('LOG_LEVEL')
+    if log_level is None:
         log_level = 'INFO'
 
     # set socket to send logs to
@@ -35,7 +37,14 @@ if __name__ == '__main__':
 
     #copy required resources
     with app.app.app_context():
-        resource_dir = ConfigReader().getResourceDir()
+        config = ConfigReader()
+
+        # set Logstash formatter for all logging handlers
+        if(config.logging_type == 'logstash'):
+            formatter = LogstashFormatterVersion1('logstash')
+            [handler.setFormatter(formatter) for handler in app.app.logger.handlers]
+
+        resource_dir = config.getResourceDir()
         src_dir = dirname(dirname(abspath(__file__)))
         try:
             copy_tree(src_dir+'/driver-resources', resource_dir)

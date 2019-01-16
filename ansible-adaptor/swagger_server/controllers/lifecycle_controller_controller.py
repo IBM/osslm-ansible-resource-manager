@@ -6,14 +6,13 @@ from datetime import date, datetime
 from typing import List, Dict
 from six import iteritems
 from ..util import deserialize_date, deserialize_datetime
-
+from flask import request
 
 from .ans_requests import RequestHandler
 from flask import abort
 from flask import current_app as app
 import json
 import uuid
-
 
 def lifecycle_transitions_id_status_get(id):
     """
@@ -55,6 +54,7 @@ def lifecycle_transitions_post(transitionRequest=None):
     """
     if connexion.request.is_json:
         transitionRequest = TransitionRequest.from_dict(connexion.request.get_json())
+
     # app.logger.debug('transition request received: ' + transitionRequest)
     # create the request
     app.logger.info('working on transition request ')

@@ -13,7 +13,7 @@ services:
        - "9042:9042"
        - "9160:9160"
      volumes:
-       - "./var_alm_ansible_rm/cassandra:/var/lib/cassandra/data"
+       - "cassandradata1:/var/lib/cassandra/data"
      environment:
        # important: broadcast address must be set to the Docker hostname
        - CASSANDRA_BROADCAST_ADDRESS=alm-ansible-rm-db
@@ -21,22 +21,25 @@ services:
        - CASSANDRA_SEEDS=alm-ansible-rm-db
        - CASSANDRA_REMOTE_CONNECTION=true
        - CASSANDRA_START_RPC=true
-  alm-ansible-rm:
-     hostname: ansible-rm
-     container_name: ansible-rm
-     build:
-       context: ./ansible-adaptor
-       dockerfile: Dockerfile
-     ports:
-       - "8080:8080"
-     volumes:
-       - "./var_alm_ansible_rm/driver:/var/alm_ansible_rm"
-       - "./ansible-adaptor:/usr/src/app"
-     environment:
-       - LOG_LEVEL=DEBUG
-       - LOG_FOLDER=/var/alm_ansible_rm/logs
-       - OS_CLIENT_CONFIG_FILE=/var/alm_ansible_rm/clouds/clouds.yaml
-     extra_hosts:
-       - "kafka:192.168.61.64"
-     depends_on:
-       - alm-ansible-rm-db
+#  alm-ansible-rm:
+#     hostname: ansible-rm
+#     container_name: ansible-rm
+#     build:
+#       context: ./ansible-adaptor
+#       dockerfile: Dockerfile
+#     ports:
+#       - "8080:8080"
+#     volumes:
+#       - "./var_alm_ansible_rm/driver:/var/alm_ansible_rm"
+#       - "./ansible-adaptor:/usr/src/app"
+#     environment:
+#       - LOG_LEVEL=DEBUG
+#       - LOG_FOLDER=/var/alm_ansible_rm/logs
+#       - OS_CLIENT_CONFIG_FILE=/var/alm_ansible_rm/clouds/clouds.yaml
+#     extra_hosts:
+#       - "kafka:192.168.61.64"
+#     depends_on:
+#       - alm-ansible-rm-db
+volumes:
+  cassandradata1:
+    driver: local
