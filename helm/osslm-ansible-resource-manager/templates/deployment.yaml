@@ -30,3 +30,10 @@ spec:
           envFrom:
           - configMapRef:
               name: osslm-ansible-rm
+          volumeMounts:
+              - mountPath: /var/alm_ansible_rm
+                name: osslm-ansible-rm
+      volumes:
+      - name: osslm-ansible-rm
+        persistentVolumeClaim:
+          claimName: osslm-ansible-rm-vol4

@@ -30,6 +30,7 @@ sudo chown dvs:dvs /var/lib/osslm/
 mkdir /var/lib/osslm/vol-1
 mkdir /var/lib/osslm/vol-2
 mkdir /var/lib/osslm/vol-3
+mkdir /var/lib/osslm/vol-4
 chmod 777 /var/lib/osslm/*
 ```
 
@@ -40,7 +41,8 @@ NOTE: You can skip the need for persistent volumes by settings cassandra.persist
 Install Helm Chart
 
 ```
-helm install osslm-ansible-resource-manager --name osslm-ansible-rm 
+helm install osslm-ansible-resource-manager-1.2.1.tgz --name osslm-ansible-rm --namespace default --debug
+#helm install osslm-ansible-resource-manager --name osslm-ansible-rm 
 ```
 
 ## Uninstall ##

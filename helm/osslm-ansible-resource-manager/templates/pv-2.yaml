@@ -1,8 +1,8 @@
-{{- if .Values.createVolumes }}
+{{- if .Values.persistence.enabled }}
 kind: PersistentVolume
 apiVersion: v1
 metadata:
-  name: local-vol2
+  name: osslm-ansible-rm-vol2
   labels:
     type: local
     createdBy: osslm-ansible-rm
@@ -14,5 +14,5 @@ spec:
     - ReadWriteOnce
   hostPath:
     type: Directory
-    path: /var/lib/osslm/vol-2
+    path: {{ .Values.persistence.hostPath }}/vol-2
 {{ end }}

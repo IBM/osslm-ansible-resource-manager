@@ -2,9 +2,8 @@
 docker:
   ## Make this the full path, including registry host and port if using one
   image: osslm-ansible-rm
-  version: 1.2
+  version: 1.2.1
   imagePullPolicy: IfNotPresent
-
 
 ## Configuration for the application deployment
 app:
@@ -53,15 +52,22 @@ app:
     ## Sets the OS_CLIENT_CONFIG_FILE environment variable
     clientConfigFile: /var/alm_ansible_rm/clouds/clouds.yaml
     ## Pass additional environment variables to the application containers
-    # env:
+    env:
+#      cassandra_ttl: 
+      cassandra_uri: foundation-cassandra
+      LOG_TYPE: logstash
+
+persistence:
+  size: "1Gi"
+  ## If enabled, will create the PVs needed. Only creates 4 volumes, so there must only be 1 replica of Cassandra, Kafka and Zookeeper
+  enabled: false
+  storageClass: "manual"
+  hostPath: /var/lib/osslm
 
 service:
   # Using NodePort allows access to the IPs through http://k8s-host:nodePort/
   type: NodePort
   nodePort: 31080
-
-## Optionally create the PVs needed. Only creates 3 volumes, so there must only be 1 replica of Cassandra, Kafka and Zookeeper
-createVolumes: false
 
 cassandra:
   enabled: false

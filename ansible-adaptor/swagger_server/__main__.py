@@ -26,6 +26,15 @@ if __name__ == '__main__':
     if log_level is None:
         log_level = 'INFO'
 
+    log_type = os.environ.get('LOG_TYPE')
+    if log_type is None:
+        log_type = 'flat'
+
+    # set Logstash formatter for all logging handlers
+    if(log_type == 'logstash'):
+        formatter = LogstashFormatterVersion1('logstash')
+        [handler.setFormatter(formatter) for handler in app.app.logger.handlers]
+
     # set socket to send logs to
     # this is to allow multiple processes logging
     socketHandler = logging.handlers.SocketHandler('localhost',
@@ -38,11 +47,6 @@ if __name__ == '__main__':
     #copy required resources
     with app.app.app_context():
         config = ConfigReader()
-
-        # set Logstash formatter for all logging handlers
-        if(config.logging_type == 'logstash'):
-            formatter = LogstashFormatterVersion1('logstash')
-            [handler.setFormatter(formatter) for handler in app.app.logger.handlers]
 
         resource_dir = config.getResourceDir()
         src_dir = dirname(dirname(abspath(__file__)))
