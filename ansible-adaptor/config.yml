@@ -13,5 +13,4 @@ ansible:
   keys_dir: "/var/alm_ansible_rm/keys"
 cassandra:
   uri: alm-ansible-rm-db
-#  uri: 192.168.99.100
   ttl: 86400
