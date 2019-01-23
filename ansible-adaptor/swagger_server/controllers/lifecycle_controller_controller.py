@@ -6,7 +6,6 @@ from datetime import date, datetime
 from typing import List, Dict
 from six import iteritems
 from ..util import deserialize_date, deserialize_datetime
-from flask import request
 
 from .ans_requests import RequestHandler
 from flask import abort

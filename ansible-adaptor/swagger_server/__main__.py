@@ -28,11 +28,12 @@ if __name__ == '__main__':
 
     log_type = os.environ.get('LOG_TYPE')
     if log_type is None:
+        # "flat" is the default, nothing specific to configure for this
         log_type = 'flat'
 
-    # set Logstash formatter for all logging handlers
     if(log_type == 'logstash'):
         formatter = LogstashFormatterVersion1('logstash')
+        # set Logstash formatter for all logging handlers
         [handler.setFormatter(formatter) for handler in app.app.logger.handlers]
 
     # set socket to send logs to

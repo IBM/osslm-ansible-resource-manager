@@ -87,44 +87,6 @@ class LogstashFormatterBase(logging.Formatter):
 #        else:
         return json.dumps(message)
 
-class LogstashFormatterVersion0(LogstashFormatterBase):
-    version = 0
-
-    def format(self, record):
-        txnId = getattr(threadLocal, 'txnId', None)
-        if(txnId is None):
-            txnId = uuid.uuid4()
-            threadLocal.txnId = txnId
-
-        # Create message dict
-        message = {
-            '@timestamp': self.format_timestamp(record.created),
-            '@message': record.getMessage(),
-            '@source': self.format_source(self.message_type, self.host,
-                                          record.pathname),
-            '@source_host': self.host,
-            '@source_path': record.pathname,
-            '@tags': self.tags,
-            '@type': self.message_type,
-            '@fields': {
-                'levelname': record.levelname,
-                'logger': record.name,
-            },
-            '@tracectx.transactionid': str(txnId)
-        }
-
-        # Add extra fields
-        message['@fields'].update(self.get_extra_fields(record))
-
-        # If exception, add debug info
-        if record.exc_info:
-            message['@fields'].update(self.get_debug_fields(record))
-
-        return self.serialize(message)
-
-
-class LogstashFormatterVersion1(LogstashFormatterBase):
-
     def format(self, record):
         txnId = getattr(threadLocal, 'txnId', None)
         if(txnId is None):
