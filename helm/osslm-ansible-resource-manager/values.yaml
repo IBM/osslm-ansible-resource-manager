@@ -55,6 +55,9 @@ app:
     env:
 #      cassandra_ttl: 
       cassandra_uri: foundation-cassandra
+      # to support indexing of logs in Elasticsearch using Filebeat, we use logstash format. This allows
+      # us to bundle the log message and other metadata in a json log message and let Fielbeat extract them
+      # as top level fields in the Elasticsearch index.
       LOG_TYPE: logstash
 
 persistence:
