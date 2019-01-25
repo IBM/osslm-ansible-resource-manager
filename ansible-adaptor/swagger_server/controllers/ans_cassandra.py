@@ -7,7 +7,7 @@ IBM Corporation, 2017, jochen kappel
 from flask import current_app as app
 from cassandra.cluster import Cluster
 from cassandra.query import dict_factory
-
+from .ans_driver_config import ConfigReader
 
 class CassandraHandler:
     """
@@ -17,6 +17,7 @@ class CassandraHandler:
         """ inner signelton class"""
         def __init__(self):
             self.keyspace = "alm_ansible"
+            self.config = ConfigReader()
             self.dbSession = None
 
         def __del__(self):
@@ -30,7 +31,7 @@ class CassandraHandler:
                 app.logger.info('creating cassandra session ' + self.keyspace)
 
                 try:
-                    self.cluster = Cluster(['alm-ansible-rm-db'])
+                    self.cluster = Cluster([self.config.cassandra_uri])
 
                     self.dbSession = self.cluster.connect()
                     app.logger.info('connected to cassandra, keyspace: ' + self.keyspace)

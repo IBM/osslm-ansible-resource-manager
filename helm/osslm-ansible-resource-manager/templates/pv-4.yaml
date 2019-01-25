@@ -1,0 +1,34 @@
+{{- if .Values.persistence.enabled }}
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: osslm-ansible-rm-vol4
+  labels:
+    type: local
+    createdBy: osslm-ansible-rm
+spec:
+  storageClassName: {{ .Values.persistence.storageClass }}
+  capacity:
+    storage: {{ .Values.persistence.size }}
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    type: Directory
+    path: {{ .Values.persistence.hostPath }}/vol-4
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: osslm-ansible-rm-vol4
+  labels:
+    type: local
+    createdBy: osslm-ansible-rm
+spec:
+  storageClassName: {{ .Values.persistence.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size }}
+  accessModes:
+    - ReadWriteOnce
+  volumeName: osslm-ansible-rm-vol4
+{{ end }}

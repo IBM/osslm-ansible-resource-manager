@@ -26,9 +26,10 @@ class ConfigReader:
             app.logger.info('loading configuration')
             self.driver_name = cfg['driver']['name']
             self.driver_version = cfg['driver']['version']
-            self.requests_ttl = cfg['cassandra']['ttl']
+            self.requests_ttl = os.environ.get('cassandra_ttl', None) or cfg['cassandra']['ttl']
+            self.cassandra_uri = os.environ.get('cassandra_uri', None) or cfg['cassandra']['uri']
 
-            self.resource_dir = cfg['ansible']['resource_dir']
+            self.resource_dir = os.environ.get('ansible_resource_dir', None) or cfg['ansible']['resource_dir']
             app.logger.debug('check for resource folder: ' + self.resource_dir)
             # check if configured directory exists:
             if not os.path.isdir(self.resource_dir):
@@ -36,7 +37,7 @@ class ConfigReader:
                 app.logger.info('creating resource folder ' + self.resource_dir)
                 os.mkdir(self.resource_dir)
 
-            self.keys_dir = cfg['ansible']['keys_dir']
+            self.keys_dir = os.environ.get('ansible_keys_dir', None) or cfg['ansible']['keys_dir']
             app.logger.debug('check for keys folder: ' + self.keys_dir)
             # check if configured directory exists:
             if not os.path.isdir(self.keys_dir):

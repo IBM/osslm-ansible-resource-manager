@@ -1,0 +1,132 @@
+## Docker Image for the osslm-ansible-rm application
+docker:
+  ## Make this the full path, including registry host and port if using one
+  image: osslm-ansible-rm
+  version: 1.2.1
+  imagePullPolicy: IfNotPresent
+
+## Configuration for the application deployment
+app:
+  ## Number of pods to deploy 
+  replicas: 1
+  ## osslm-ansible-rm specific configuration
+  config:
+    kafka:
+      ## Assumes the responseKafkaConnectionUrl value provided as part of the clientConfigFile is still kafka:9092 - which means we must have a "kafka" host available
+      ## There 2 options for this
+
+      ## Option 1 (enabled by default)
+      ## Access an existing Kafka installed by the Lifecycle Manager in the same Kubernetes namespace
+      ## This creates an additional service that forwards traffic to the existing Kafka pods
+      ## Expects a Kafka installed using helm-foundation provided with the Lifecycle Manager
+      useExisting: true
+      existingSelectors:
+        app: kafka
+        release: foundation
+
+      ## Option 2 
+      ## Fixed IP. This is added as a host entry to the container.
+      hostEnabled: false
+      host: 
+
+      ## Option 3
+      ## Install kafka as part of this helm chart (see kafka.enabled) then disable useExisting and hostEnabled
+      
+    cassandra:
+      ## Option 1 (enabled by default)
+      ## Access an existing Cassandra installed by the Lifecycle Manager in the same Kubernetes namespace
+      ## This creates an additional service that forwards traffic to the existing Cassandra pods
+      ## Expects a Cassandra installed using helm-foundation provided with the Lifecycle Manager
+      useExisting: true
+      existingSelectors:
+        app: cassandra
+        release: foundation
+
+      ## Alternative IP for connecting to cassandra
+      hostEnabled: false
+      host: 
+    ## Configure logging 
+    log:
+      level: DEBUG
+      dir: /var/alm_ansible_rm/logs
+    ## Sets the OS_CLIENT_CONFIG_FILE environment variable
+    clientConfigFile: /var/alm_ansible_rm/clouds/clouds.yaml
+    ## Pass additional environment variables to the application containers
+    env:
+#      cassandra_ttl: 
+      cassandra_uri: foundation-cassandra
+      # to support indexing of logs in Elasticsearch using Filebeat, we use logstash format. This allows
+      # us to bundle the log message and other metadata in a json log message and let Fielbeat extract them
+      # as top level fields in the Elasticsearch index.
+      LOG_TYPE: logstash
+
+persistence:
+  size: "1Gi"
+  ## If enabled, will create the PVs needed. Only creates 4 volumes, so there must only be 1 replica of Cassandra, Kafka and Zookeeper
+  enabled: false
+  storageClass: "manual"
+  hostPath: /var/lib/osslm
+
+service:
+  # Using NodePort allows access to the IPs through http://k8s-host:nodePort/
+  type: NodePort
+  nodePort: 31080
+
+cassandra:
+  enabled: false
+  ## Required as the ansible-rm application always connects to Cassandra on this hostname
+  fullnameOverride: alm-ansible-rm-db
+  ## Requires setting up the LocalStorage class and creating a Persistent Volume
+  persistence:
+    enabled: true
+    storageClass: "manual"
+    size: "1Gi"
+  config:
+    cluster_name: alm-ansible-rm-cluster
+    cluster_size: 1
+    seed_size: 1
+    max_heap_size: 1024M
+    heap_new_size: 512M
+  resources:
+    requests:
+      cpu: 500m
+      memory: "1Gi"
+    limits:
+      cpu: 2
+      memory: "4Gi"
+
+kafka:
+  enabled: false
+  ## Required as the ansible-rm application connects to Kafka on this hostname (from the default config file: OS_CLIENT_CONFIG_FILE=/var/alm_ansible_rm/clouds/clouds.yaml)
+  fullnameOverride: kafka
+  replicas: 1
+  storageClass: "manual"
+  ## Requires setting up the LocalStorage class and creating a Persistent Volume
+  persistence:
+    enabled: true
+    size: "1Gi"
+    storageClass: "manual"
+
+  ## The following allows Kafka to be accessed outside of K8s at kafka.osslm:31090, if you add kafka.osslm to your hosts file with the k8s IP
+  external: 
+    enabled: true
+    domain: osslm
+  rbac:
+    enabled: true  
+  configurationOverrides:
+    offsets.topic.replication.factor: 1
+    advertised.listeners: |-
+      EXTERNAL://kafka.osslm:$((31090 + ${KAFKA_BROKER_ID}))
+    listener.security.protocol.map: |-
+      PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+
+  topics:
+  - name: ansible-rm
+    partitions: 1
+    replicationFactor: 1
+  zookeeper:
+    replicaCount: 1
+    persistence:
+      enabled: true
+      storageClass: "manual"
+      size: "1Gi"
