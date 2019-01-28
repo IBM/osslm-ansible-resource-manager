@@ -14,5 +14,5 @@ spec:
     - ReadWriteOnce
   hostPath:
     type: Directory
-    path: {{ .Values.persistence.hostPath }}/volume-r03
+    path: {{ .Values.persistence.hostPath }}/volume-r02
 {{ end }}
