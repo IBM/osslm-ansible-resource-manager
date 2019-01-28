@@ -12,4 +12,5 @@ ansible:
   resource_dir: "/var/alm_ansible_rm/resources"
   keys_dir: "/var/alm_ansible_rm/keys"
 cassandra:
+  uri: alm-ansible-rm-db
   ttl: 86400

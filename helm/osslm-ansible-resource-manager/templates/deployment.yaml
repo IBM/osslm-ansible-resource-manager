@@ -1,0 +1,39 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: osslm-ansible-rm
+spec:
+  replicas: {{ .Values.app.replicas }}
+  template:
+    metadata:
+      labels:
+        app: osslm-ansible-rm
+    spec:
+      hostAliases:
+      {{- if .Values.app.config.kafka.hostEnabled }}
+        - ip: {{ .Values.app.config.kafka.host }}
+          hostnames:
+          - "kafka"
+      {{- end }}
+      {{- if .Values.app.config.cassandra.hostEnabled }}
+        - ip: {{ .Values.app.config.cassandra.host }}
+          hostnames:
+          - "alm-ansible-rm-db"
+      {{- end }}
+      containers:
+        - name: osslm-ansible-rm
+          image: {{ .Values.docker.image }}:{{ .Values.docker.version }}
+          imagePullPolicy: {{ .Values.docker.imagePullPolicy }}
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          envFrom:
+          - configMapRef:
+              name: osslm-ansible-rm
+          volumeMounts:
+              - mountPath: /var/alm_ansible_rm
+                name: osslm-ansible-rm
+      volumes:
+      - name: osslm-ansible-rm
+        persistentVolumeClaim:
+          claimName: osslm-ansible-rm-vol4

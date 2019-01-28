@@ -1,0 +1,25 @@
+{{- if .Values.app.config.cassandra.useExisting }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: alm-ansible-rm-db
+spec:
+  ports:
+  - name: intra
+    port: 7000
+    targetPort: 7000
+  - name: tls
+    port: 7001
+    targetPort: 7001
+  - name: jmx
+    port: 7199
+    targetPort: 7199
+  - name: cql
+    port: 9042
+    targetPort: 9042
+  - name: thrift
+    port: 9160
+    targetPort: 9160
+  selector:
+{{ toYaml .Values.app.config.cassandra.existingSelectors | indent 4 }}
+{{- end }}
