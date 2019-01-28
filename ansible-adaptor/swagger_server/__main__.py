@@ -59,12 +59,12 @@ if __name__ == '__main__':
             app.app.logger.error(str(err))
 
     k = Kafka(app.app.logger)
-
-    ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
-    ctx.load_cert_chain(config.ssl_dir + '/tls.crt', config.ssl_dir + '/tls.key')
     app.add_api('swagger.yaml', arguments={'title': 'ansible resource manager specification.'})
 
-    if(ssl):
+    if(ssl and config.ssl_enabled):
+        ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+        ctx.load_cert_chain(config.ssl_dir + '/tls.crt', config.ssl_dir + '/tls.key')
+
         app.app.logger.info('driver starting listening on port 8443')
         app.run(port=8443,threaded=False,processes=8,ssl_context=ctx)
     else:

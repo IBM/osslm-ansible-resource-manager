@@ -59,6 +59,7 @@ app:
       # us to bundle the log message and other metadata in a json log message and let Fielbeat extract them
       # as top level fields in the Elasticsearch index.
       LOG_TYPE: logstash
+      ssl_enabled: "true"
     security:
       ssl:
         secretName: osslm-ansible-rm-tls
