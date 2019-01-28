@@ -14,7 +14,7 @@ import connexion
 from .encoder import JSONEncoder
 from .controllers.ans_driver_config import ConfigReader
 from .controllers.ans_kafka import Kafka
-from .controllers.ans_logging import LogstashFormatterVersion1
+from .controllers.ans_logging import LogstashFormatter
 import uuid
 import sys
 import ssl
@@ -33,7 +33,7 @@ if __name__ == '__main__':
         log_type = 'flat'
 
     if(log_type == 'logstash'):
-        formatter = LogstashFormatterVersion1('logstash')
+        formatter = LogstashFormatter('logstash')
         # set Logstash formatter for all logging handlers
         [handler.setFormatter(formatter) for handler in app.app.logger.handlers]
 

@@ -13,7 +13,7 @@ except ImportError:
 
 threadLocal = threading.local()
 
-class LogstashFormatterBase(logging.Formatter):
+class LogstashFormatter(logging.Formatter):
 
     def __init__(self, message_type='Logstash', tags=None, fqdn=False):
         self.message_type = message_type
