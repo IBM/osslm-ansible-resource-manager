@@ -17,6 +17,7 @@ from .controllers.ans_kafka import Kafka
 from .controllers.ans_logging import LogstashFormatterVersion1
 import uuid
 import sys
+import ssl
 
 if __name__ == '__main__':
     app = connexion.App(__name__, specification_dir='./swagger/')
@@ -58,6 +59,14 @@ if __name__ == '__main__':
             app.app.logger.error(str(err))
 
     k = Kafka(app.app.logger)
+
+    ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+    ctx.load_cert_chain('/usr/src/app/swagger_server/ssl.cert', '/usr/src/app/swagger_server/ssl.key')
     app.add_api('swagger.yaml', arguments={'title': 'ansible resource manager specification.'})
-    app.app.logger.info('driver starting listening on port 8080')
-    app.run(port=8080,threaded=False,processes=8)
+
+    if(ssl):
+        app.app.logger.info('driver starting listening on port 8443')
+        app.run(port=8443,threaded=False,processes=8,ssl_context=ctx)
+    else:
+        app.app.logger.info('driver starting listening on port 8080')
+        app.run(port=8080,threaded=False,processes=8)
