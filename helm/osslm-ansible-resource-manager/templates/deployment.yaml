@@ -31,9 +31,16 @@ spec:
           - configMapRef:
               name: osslm-ansible-rm
           volumeMounts:
-              - mountPath: /var/alm_ansible_rm
-                name: osslm-ansible-rm
+          - name: osslm-ansible-rm
+            mountPath: /var/alm_ansible_rm
+          {{- if .Values.app.config.security.ssl.secretName }}
+          - name: {{ .Values.app.config.security.ssl.secretName }}
+            mountPath: /var/alm_ansible_rm/ssl
+          {{- end }}
       volumes:
       - name: osslm-ansible-rm
         persistentVolumeClaim:
           claimName: osslm-ansible-rm-vol4
+      - name: {{ .Values.app.config.security.ssl.secretName }}
+        secret:
+          secretName: {{ .Values.app.config.security.ssl.secretName }}

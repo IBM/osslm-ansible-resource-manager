@@ -11,6 +11,7 @@ driver:
 ansible:
   resource_dir: "/var/alm_ansible_rm/resources"
   keys_dir: "/var/alm_ansible_rm/keys"
+  ssl_dir: "/var/alm_ansible_rm/ssl"
 cassandra:
   uri: alm-ansible-rm-db
   ttl: 86400

@@ -45,6 +45,8 @@ class ConfigReader:
                 app.logger.info('creating keys folder ' + self.keys_dir)
                 os.mkdir(self.keys_dir)
 
+            self.ssl_dir = os.environ.get('ssl_dir', None) or cfg['ansible']['ssl_dir']
+            app.logger.debug('ssl folder: ' + self.ssl_dir)
 
             self.supported_features = cfg['driver']['supportedFeatures']
             self.supported_api_version = cfg['driver']['supportedApiVersions']

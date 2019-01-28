@@ -61,7 +61,7 @@ if __name__ == '__main__':
     k = Kafka(app.app.logger)
 
     ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
-    ctx.load_cert_chain('/usr/src/app/swagger_server/ssl.cert', '/usr/src/app/swagger_server/ssl.key')
+    ctx.load_cert_chain(config.ssl_dir + '/tls.crt', config.ssl_dir + '/tls.key')
     app.add_api('swagger.yaml', arguments={'title': 'ansible resource manager specification.'})
 
     if(ssl):
