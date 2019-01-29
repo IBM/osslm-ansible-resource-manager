@@ -114,6 +114,22 @@ helm delete osslm-ansible-rm --purge
 
 ## Accessing the Ansible-RM ##
 
+By default, the Helm installation exposes Ansible RM on a http port 8080 only. To start it up on a https port (8443) pass a Helm values file that looks something like this: 
+
+```
+persistence:
+  size: "1Gi"
+  ## If enabled, will create the PVs needed. Only creates 4 volumes, so there must only be 1 replica of Cassandra, Kafka and Zookeeper
+  enabled: true
+  storageClass: "manual"
+  hostPath: /var/lm
+
+app:
+  config:
+    env:
+      ssl_enabled: "true"
+```
+
 The Ansible-RM can be accessed in the Kubernetes network via **osslm-ansible-rm:8080** (only pods in the same namespace can access it this way).
 
 The Ansible-RM can be accessed externally via **<kubernetes-ip>:31080** where "kubernetes-ip" is the IP address of one of your Kubernetes nodes.
