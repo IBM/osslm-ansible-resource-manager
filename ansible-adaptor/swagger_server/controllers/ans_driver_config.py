@@ -6,6 +6,7 @@ IBM Corporation, 2017, jochen kappel
 import os
 import yaml
 from flask import current_app as app
+from str2bool import str2bool
 
 class ConfigReader:
     """
@@ -45,10 +46,11 @@ class ConfigReader:
                 app.logger.info('creating keys folder ' + self.keys_dir)
                 os.mkdir(self.keys_dir)
 
-            self.ssl_enabled = os.environ.get('ssl_enabled', False) or cfg['ssl']['enabled']
+            tmp = os.environ.get('ssl_enabled', None)
+            if(tmp is None):
+                tmp = cfg['ssl']['enabled']
+            self.ssl_enabled = str2bool(tmp)
             self.ssl_dir = os.environ.get('ssl_dir', None) or cfg['ssl']['dir']
-            app.logger.debug('ssl enabled: ' + self.ssl_enabled)
-            app.logger.debug('ssl folder: ' + self.ssl_dir)
 
             self.supported_features = cfg['driver']['supportedFeatures']
             self.supported_api_version = cfg['driver']['supportedApiVersions']

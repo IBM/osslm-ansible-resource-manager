@@ -7,3 +7,4 @@ setuptools >= 40.5.0
 cassandra-driver >= 3.15.1
 kafka-python >= 1.4.3
 textfsm >= 0.4.1
+str2bool >= 1.1
