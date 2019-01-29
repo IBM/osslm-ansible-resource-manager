@@ -24,5 +24,6 @@ RUN mkdir -p /var/log/supervisor
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 EXPOSE 8080
+EXPOSE 8443
 CMD ["/usr/bin/supervisord"]
 #CMD ["python3","-m", "swagger_server"]

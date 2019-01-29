@@ -14,9 +14,10 @@ import connexion
 from .encoder import JSONEncoder
 from .controllers.ans_driver_config import ConfigReader
 from .controllers.ans_kafka import Kafka
-from .controllers.ans_logging import LogstashFormatterVersion1
+from .controllers.ans_logging import LogstashFormatter
 import uuid
 import sys
+import ssl
 
 if __name__ == '__main__':
     app = connexion.App(__name__, specification_dir='./swagger/')
@@ -32,7 +33,7 @@ if __name__ == '__main__':
         log_type = 'flat'
 
     if(log_type == 'logstash'):
-        formatter = LogstashFormatterVersion1('logstash')
+        formatter = LogstashFormatter('logstash')
         # set Logstash formatter for all logging handlers
         [handler.setFormatter(formatter) for handler in app.app.logger.handlers]
 
@@ -59,5 +60,13 @@ if __name__ == '__main__':
 
     k = Kafka(app.app.logger)
     app.add_api('swagger.yaml', arguments={'title': 'ansible resource manager specification.'})
-    app.app.logger.info('driver starting listening on port 8080')
-    app.run(port=8080,threaded=False,processes=8)
+
+    if(config.ssl_enabled and ssl):
+        ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+        ctx.load_cert_chain(config.ssl_dir + '/tls.crt', config.ssl_dir + '/tls.key')
+
+        app.app.logger.info('driver starting listening on port 8443')
+        app.run(port=8443,threaded=False,processes=8,ssl_context=ctx)
+    else:
+        app.app.logger.info('driver starting listening on port 8080')
+        app.run(port=8080,threaded=False,processes=8)
