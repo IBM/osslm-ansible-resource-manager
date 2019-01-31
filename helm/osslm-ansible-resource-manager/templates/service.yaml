@@ -14,5 +14,9 @@ spec:
 {{- end }}
     protocol: TCP
     name: http
+  - port: 8443
+    targetPort: 8443
+    protocol: TCP
+    name: https
   selector:
     app: osslm-ansible-rm
