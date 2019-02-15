@@ -18,5 +18,8 @@ spec:
     targetPort: 8443
     protocol: TCP
     name: https
+{{- if eq .Values.service.type "NodePort" }}
+    nodePort: {{ .Values.service.sslNodePort }}
+{{- end }}
   selector:
     app: osslm-ansible-rm
