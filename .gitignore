@@ -10,3 +10,5 @@ var_alm_ansible_rm/**
 /.idea/osslm-ansible-resource-manager.iml
 /.idea/vcs.xml
 /.idea/workspace.xml
+**/repo/*
+**/charts/*
