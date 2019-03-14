@@ -1,8 +1,7 @@
 ## Docker Image for the osslm-ansible-rm application
 docker:
   ## Make this the full path, including registry host and port if using one
-  image: osslm-ansible-rm
-#  image: accanto/osslm-ansible-rm
+  image: accanto/osslm-ansible-rm
   version: 1.3.2
   imagePullPolicy: IfNotPresent
 
