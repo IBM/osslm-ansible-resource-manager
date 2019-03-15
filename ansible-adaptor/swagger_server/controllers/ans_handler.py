@@ -37,7 +37,7 @@ class OutputCallback(CallbackBase):
         self.facts = {}
         self.failed_task = ''
         self.logger = logger
-        self.logger.info('initializing ansible callback')
+        self.logger.debug('initializing ansible callback')
 
         # return data, will be filled if run ok
         self.resource_id = None
@@ -53,10 +53,10 @@ class OutputCallback(CallbackBase):
         """
         self.failed_task = result._task.get_name()
         self.host_unreachable_log.append(dict(task=self.failed_task, result=result._result))
-        self.logger.debug(str(self.host_unreachable_log))
         pid = os.getpid()
         thread = threading.current_thread().ident
-        self.logger.info('pid:'+ str(pid) +' thread:'+ str(thread) +' ansible playbook task host unreachable: ' + self.failed_task)
+        self.logger.error('pid:'+ str(pid) +' thread:'+ str(thread) + ' task: \'' + self.failed_task + '\' UNREACHABLE: ' + ' ansible playbook task host unreachable: ' + self.failed_task)
+        self.logger.debug(str(self.host_unreachable_log))
         self.host_unreachable = True
         self.failure_reason = 'resource unreachable'
         self.failure_code = 'RESOURCE_NOT_FOUND'
@@ -91,7 +91,7 @@ class OutputCallback(CallbackBase):
 #                             for item in i.replace(' ', '').split(',')))
                              for item in i.replace(' ', '').split('#') ))
                 self.logger.info('properties reported')
-                self.logger.debug('properites are: ' + str(self.properties))
+                self.logger.debug('properties are: ' + str(self.properties))
 
             elif 'INTERNAL_PROPERTIES' in task:
                 # collect all internal properties
@@ -101,7 +101,7 @@ class OutputCallback(CallbackBase):
                         dict(item.split(':', maxsplit=1)
                              for item in i.replace(' ', '').split(',')))
                 self.logger.info('internal properties reported')
-                self.logger.debug('internal properites are: ' + str(self.internal_properties))
+                self.logger.debug('internal properties are: ' + str(self.internal_properties))
 
             elif 'INTERNAL_RESOURCE' in task:
                 # remove the type element
@@ -124,8 +124,8 @@ class OutputCallback(CallbackBase):
                 self.failure_reason = failure['failure_reason']
 
                 self.playbook_failed = True
-                self.logger.info('failure reported')
-                self.logger.debug('failure code: ' + self.failure_code)
+                self.logger.error('failure reported')
+                self.logger.error('failure code: ' + self.failure_code)
 
             else:
                 self.logger.warning('unsupported output type found in ansible playbook')
@@ -138,7 +138,7 @@ class OutputCallback(CallbackBase):
         msg=task_result['msg']
         pid = os.getpid()
         thread = threading.current_thread().ident
-        self.logger.info('pid:'+ str(pid) +' thread:'+ str(thread) +' v2_runner_on_failed RESULT:' + str(msg))
+        self.logger.error('pid:'+ str(pid) +' thread:'+ str(thread) + ' task: \'' + self.failed_task + '\' FAILED: ' + str(msg))
         if 'UNREACHABLE' in msg:
             self.host_unreachable = True
             self.failure_reason = 'resource unreachable'
@@ -149,7 +149,6 @@ class OutputCallback(CallbackBase):
         self.host_failed = True
         self.failed_task = result._task.get_name()
         self.host_failed_log.append(dict(task=self.failed_task, result=result._result))
-        self.logger.info('ansible playbook run task failed: ' + self.failed_task)
         self.logger.debug(str(self.host_failed_log))
 
     def v2_playbook_on_play_start(self, play, *args, **kwargs):
@@ -186,14 +185,15 @@ class Runner(object):
     wraps ansible playbook execution
     """
 
-    def __init__(self, hostnames, playbook,
+    def __init__(self, hostnames, action, playbook,
                  private_key_file, run_data, internal_data, location,
                  become_pass, request_id, started_at,
                  config, dbsession, tr, verbosity=5):
 
         self.logger = app.logger
-        self.logger.info('initializing ansible runbook executor')
+        self.logger.debug('initializing ansible runbook executor')
 
+        self.action = action
         self.config = config
         self.dbsession = dbsession
         self.transition_request = tr
@@ -300,7 +300,7 @@ class Runner(object):
             self.logger.debug('transition request ' + str(self.transition_request))
             self.log_request_status('PENDING', 'playbook initialized', '', '')
 
-        self.logger.info('ansible runbook executor instantiated for ' + str(playbook))
+        self.logger.debug('ansible runbook executor instantiated for ' + str(playbook))
 
         self.callback = OutputCallback(self.logger)
         self.pbex._tqm._stdout_callback = self.callback
@@ -309,7 +309,7 @@ class Runner(object):
         """
         run an ansible playbook (sync mode) and return Results
         """
-        self.logger.info('ansible playbook run started')
+        self.logger.debug('ansible playbook run started')
         self.pbex._tqm._stdout_callback = self.callback
         self.pbex.run()
         return self.callback.properties, self.callback.is_run_ok()
@@ -318,19 +318,17 @@ class Runner(object):
         """
         run an ansible playbook asynchronously and return results when done
         """
-        self.logger.info(str(self.request_id) + ': ' + 'ansible playbook run started ' + self.started_at.isoformat())
+        self.logger.info(str(self.request_id) + ': ' + ' action ' + self.action ' started ' + self.started_at.isoformat())
 
         self.log_request_status('IN_PROGRESS', 'running playbook', '', '')
         self.pbex._tqm._stdout_callback = self.callback
         self.pbex.run()
         self.finished_at = datetime.now()
-        self.logger.info(str(self.request_id) + ': ' + 'ansible playbook run finished ' + self.finished_at.isoformat())
 
-        self.logger.debug("Ansible facts")
-        self.logger.debug(json.dumps(self.callback.facts))
+        self.logger.debug(str(self.request_id) + ': ' + ' action ' + self.action + " ansible facts" + json.dumps(self.callback.facts))
 
         if self.callback.is_run_ok():
-            self.logger.info(str(self.request_id) + ': ' + 'ansible ran OK')
+            self.logger.info(str(self.request_id) + ': ' + ' action ' + self.action + ' finished OK ' + self.finished_at.isoformat())
 
 #            if not self.callback.resource_id:
 #                self.logger.error(str(self.request_id) + ': ' + 'Resource ID MUST be set')
@@ -393,8 +391,7 @@ class Runner(object):
             return
 
         else:
-            self.logger.info(str(self.request_id) + ': ' + 'ansible run failed')
-            self.logger.error(str(self.request_id) + ': ' + 'ansible error')
+            self.logger.error(str(self.request_id) + ': ' + ' action ' + self.action + ' finished FAILED ' + self.finished_at.isoformat())
 
             if self.callback.failed_task != '':
                 last_task = self.callback.failed_task
@@ -407,7 +404,7 @@ class Runner(object):
         """
         write log status to db or push to kafka
         """
-        self.logger.info(str(self.request_id) + ': ' + 'Logging request status '+status)
+        self.logger.info('request ' + str(self.request_id) + ' status '+status)
         is_async_mode = self.config.getSupportedFeatures()['AsynchronousTransitionResponses']
         ttl = self.config.getTTL()
 
@@ -424,10 +421,8 @@ class Runner(object):
         else:
             resource_id = None
 
-        self.logger.info(str(self.request_id) + ': ' + 'writing request status to db')
-        self.logger.debug(str(self.request_id) + ': ' + 'request id '+str(self.request_id))
         if status == 'FAILED':
-            self.logger.debug(str(self.request_id) + ': ' + 'Reason: ' + freason + ' Failure Code: ' + fcode)
+            self.logger.error("Request " + str(self.request_id) + ' failed:' + freason + ' failure code: ' + fcode)
 
         try:
             if status == 'PENDING':
@@ -455,12 +450,12 @@ class Runner(object):
             self.logger.error(str(err))
             raise
 
-        self.logger.info('request logged to DB: ' + str(self.request_id))
+        self.logger.debug('request logged to DB: ' + str(self.request_id))
 
         if is_async_mode:
             if (status == 'COMPLETED') or (status == 'FAILED'):
                 # call kafka
-                self.logger.info(str(self.request_id) + ': ' + 'async mode and status is '+status)
+                self.logger.debug(str(self.request_id) + ': ' + 'async mode and status is '+status)
                 kafkaClient = Kafka(self.logger)
 
                 kmsg = {}

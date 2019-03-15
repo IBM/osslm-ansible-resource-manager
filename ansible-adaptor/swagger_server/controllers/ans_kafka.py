@@ -22,14 +22,14 @@ class Kafka:
         """
         self.logger = logger
         self.kproducer = None
-        self.logger.info('reading kafka config')
+        self.logger.debug('reading kafka config')
         self.config = ConfigReader()
         self.kafkaUrl = self.config.getDriverProperties('responseKafkaConnectionUrl')
         self.kafkaTopic = self.config.getDriverProperties('responseKafkaTopicName')
 
         try:
             self.kproducer = KafkaProducer(bootstrap_servers=self.kafkaUrl, value_serializer=lambda m: json.dumps(m).encode('ascii'), api_version=(0, 10))
-            self.logger.info('kafka producer is up')
+            self.logger.debug('kafka producer is up')
         except Exception as e:
             self.logger.error('could not connect to kafka server at ' + self.kafkaUrl+' no messages will be published')
             self.producer = None

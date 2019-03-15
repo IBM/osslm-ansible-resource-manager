@@ -14,11 +14,11 @@ from flask import current_app as app
 def ensure_topic( topic, num_partitions,
                  logger,
                  timeout_ms=3000, brokers='localhost' ):
-    logger.info('checking kafka for topic '+topic)
+    logger.debug('checking kafka for topic '+topic)
     client = KafkaClient(bootstrap_servers=brokers)
 
     if topic not in client.cluster.topics(exclude_internal_topics=True):
-        logger.info('creating kafka topic '+topic)
+        logger.debug('creating kafka topic '+topic)
 
         request = admin.CreateTopicsRequest_v0(
             create_topic_requests=[(
@@ -45,5 +45,5 @@ def ensure_topic( topic, num_partitions,
                 topic, error_code))
 
     else:
-        logger.info('kafka topic '+topic+' exists')
+        logger.debug('kafka topic '+topic+' exists')
 #ensure_topic( topic='alm_test',num_partitions=1, brokers='kafka:9092')

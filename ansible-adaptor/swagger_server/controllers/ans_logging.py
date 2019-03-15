@@ -89,9 +89,6 @@ class LogstashFormatter(logging.Formatter):
 
     def format(self, record):
         txnId = getattr(threadLocal, 'txnId', None)
-        if(txnId is None):
-            txnId = uuid.uuid4()
-            threadLocal.txnId = txnId
 
         # Create message dict
         message = {

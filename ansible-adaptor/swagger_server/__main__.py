@@ -54,7 +54,7 @@ if __name__ == '__main__':
         src_dir = dirname(dirname(abspath(__file__)))
         try:
             copy_tree(src_dir+'/driver-resources', resource_dir)
-            app.app.logger.info('required resources copied to :'+resource_dir)
+            app.app.logger.debug('required resources copied to :'+resource_dir)
         except Exception as err:
             app.app.logger.error(str(err))
 
