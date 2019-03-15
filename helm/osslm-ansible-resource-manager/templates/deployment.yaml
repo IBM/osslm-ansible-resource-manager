@@ -33,7 +33,7 @@ spec:
           volumeMounts:
           - name: osslm-ansible-rm
             mountPath: /var/alm_ansible_rm
-          {{- if .Values.app.config.security.ssl.secretName }}
+          {{- if and .Values.app.config.security.ssl.enabled .Values.app.config.security.ssl.secretName }}
           - name: {{ .Values.app.config.security.ssl.secretName }}
             mountPath: /var/alm_ansible_rm/ssl
           {{- end }}

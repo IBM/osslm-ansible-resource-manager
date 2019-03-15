@@ -310,6 +310,7 @@ class Runner(object):
         run an ansible playbook (sync mode) and return Results
         """
         self.logger.info('ansible playbook run started')
+        self.pbex._tqm._stdout_callback = self.callback
         self.pbex.run()
         return self.callback.properties, self.callback.is_run_ok()
 
@@ -320,9 +321,13 @@ class Runner(object):
         self.logger.info(str(self.request_id) + ': ' + 'ansible playbook run started ' + self.started_at.isoformat())
 
         self.log_request_status('IN_PROGRESS', 'running playbook', '', '')
+        self.pbex._tqm._stdout_callback = self.callback
         self.pbex.run()
         self.finished_at = datetime.now()
         self.logger.info(str(self.request_id) + ': ' + 'ansible playbook run finished ' + self.finished_at.isoformat())
+
+        self.logger.debug("Ansible facts")
+        self.logger.debug(json.dumps(self.callback.facts))
 
         if self.callback.is_run_ok():
             self.logger.info(str(self.request_id) + ': ' + 'ansible ran OK')
