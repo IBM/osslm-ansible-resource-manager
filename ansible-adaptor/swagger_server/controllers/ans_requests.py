@@ -19,10 +19,10 @@ from .ans_locations import LocationHandler
 from .ans_instances import InstanceHandler
 from .ans_handler import Runner
 from .ans_exceptions import InstanceNotFoundError
+from .ans_thread import threadLocal
 
 import random
 import time
-
 
 class RequestHandler():
     """

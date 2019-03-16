@@ -1,5 +1,6 @@
+from .ans_thread import threadLocal
+
 import logging
-import threading
 import uuid
 import traceback
 import logging
@@ -10,8 +11,6 @@ try:
     import json
 except ImportError:
     import simplejson as json
-
-threadLocal = threading.local()
 
 class LogstashFormatter(logging.Formatter):
 
@@ -88,8 +87,6 @@ class LogstashFormatter(logging.Formatter):
         return json.dumps(message)
 
     def format(self, record):
-        txnId = getattr(threadLocal, 'txnId', None)
-
         # Create message dict
         message = {
             '@timestamp': self.format_timestamp(record.created),
@@ -103,7 +100,7 @@ class LogstashFormatter(logging.Formatter):
             # Extra Fields
             'level': record.levelname,
             'logger_name': record.name,
-            '@tracectx.transactionid': str(txnId)
+            '@tracectx.transactionid': threadLocal.get('txnId')
         }
 
         # Add extra fields

@@ -318,7 +318,7 @@ class Runner(object):
         """
         run an ansible playbook asynchronously and return results when done
         """
-        self.logger.info(str(self.request_id) + ': ' + ' action ' + self.action ' started ' + self.started_at.isoformat())
+        self.logger.info(str(self.request_id) + ': ' + ' action ' + self.action + ' started ' + self.started_at.isoformat())
 
         self.log_request_status('IN_PROGRESS', 'running playbook', '', '')
         self.pbex._tqm._stdout_callback = self.callback
