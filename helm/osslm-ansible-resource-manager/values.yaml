@@ -47,7 +47,7 @@ app:
       host: 
     ## Configure logging 
     log:
-      level: INFO
+      level: DEBUG
       dir: /var/alm_ansible_rm/logs
     ## Sets the OS_CLIENT_CONFIG_FILE environment variable
     clientConfigFile: /var/alm_ansible_rm/clouds/clouds.yaml
