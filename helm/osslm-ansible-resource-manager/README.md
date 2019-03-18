@@ -42,7 +42,6 @@ Install Helm Chart
 
 ```
 helm install osslm-ansible-resource-manager-1.3.2.tgz --name osslm-ansible-rm --namespace default --values osslm-ansible-rm.values.yaml --debug
-#helm install osslm-ansible-resource-manager --name osslm-ansible-rm 
 ```
 
 ## Uninstall ##
