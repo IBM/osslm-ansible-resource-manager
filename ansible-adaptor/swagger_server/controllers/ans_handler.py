@@ -55,7 +55,8 @@ class OutputCallback(CallbackBase):
         self.host_unreachable_log.append(dict(task=self.failed_task, result=result._result))
         pid = os.getpid()
         thread = threading.current_thread().ident
-        self.logger.error('pid:'+ str(pid) +' thread:'+ str(thread) + ' task: \'' + self.failed_task + '\' UNREACHABLE: ' + ' ansible playbook task host unreachable: ' + self.failed_task)
+        threadName = threading.current_thread().name
+        self.logger.error('pid:'+ str(pid) +' thread:'+ threadName + '(' + str(thread) + ') task: \'' + self.failed_task + '\' UNREACHABLE: ' + ' ansible playbook task host unreachable: ' + self.failed_task)
         self.logger.debug(str(self.host_unreachable_log))
         self.host_unreachable = True
         self.failure_reason = 'resource unreachable'
@@ -68,7 +69,8 @@ class OutputCallback(CallbackBase):
         task = result._task.get_name()
         pid = os.getpid()
         thread = threading.current_thread().ident
-        self.logger.info('pid:'+ str(pid) +' thread:'+ str(thread) +' ansible playbook task run OK: ' + task)
+        threadName = threading.current_thread().name
+        self.logger.info('pid:'+ str(pid) +' thread:'+ threadName + '(' + str(thread) + ') ansible playbook task run OK: ' + task)
         self.logger.debug(result._result)
         if 'results' in result._result.keys():
             self.facts = result._result['results']
@@ -134,11 +136,15 @@ class OutputCallback(CallbackBase):
         """
         ansible task failed
         """
-        task_result=result._result
-        msg=task_result['msg']
+        self.host_failed = True
+        self.failed_task = result._task.get_name()
+        task_result = result._result
+
+        msg = task_result['msg']
         pid = os.getpid()
         thread = threading.current_thread().ident
-        self.logger.error('pid:'+ str(pid) +' thread:'+ str(thread) + ' task: \'' + self.failed_task + '\' FAILED: ' + str(msg))
+        threadName = threading.current_thread().name
+        self.logger.error('pid:'+ str(pid) +' thread:'+ threadName + '(' + str(thread) + ') task: \'' + self.failed_task + '\' FAILED: ' + str(msg))
         if 'UNREACHABLE' in msg:
             self.host_unreachable = True
             self.failure_reason = 'resource unreachable'
@@ -146,8 +152,6 @@ class OutputCallback(CallbackBase):
         else:
             self.failure_reason = 'resource tasks failed'
 
-        self.host_failed = True
-        self.failed_task = result._task.get_name()
         self.host_failed_log.append(dict(task=self.failed_task, result=result._result))
         self.logger.debug(str(self.host_failed_log))
 
@@ -159,15 +163,14 @@ class OutputCallback(CallbackBase):
         thread = threading.current_thread().ident
         self.logger.info('pid:'+ str(pid) +' thread:'+ str(thread) +' ansible playbook play started: '+ play.name)
 
-
-
     def v2_playbook_on_task_start(self, task, is_conditional,*args, **kwargs):
         """
         log task start
         """
         pid = os.getpid()
         thread = threading.current_thread().ident
-        self.logger.info('pid:'+ str(pid) +' thread:'+ str(thread) +' ansible playbook task started: ' + task.name )
+        threadName = threading.current_thread().name
+        self.logger.info('pid:'+ str(pid) +' thread:'+ threadName + '(' + str(thread) + ') ansible playbook task started: ' + task.name)
 
     def is_run_ok(self):
         """
@@ -176,9 +179,9 @@ class OutputCallback(CallbackBase):
         success = ((not self.host_unreachable) and (not self.host_failed) and (not self.playbook_failed))
         pid = os.getpid()
         thread = threading.current_thread().ident
-        self.logger.info('pid:'+ str(pid) +' thread:'+ str(thread) +' ansible playbook run finished OK: ' + str(success))
+        threadName = threading.current_thread().name
+        self.logger.info('pid:'+ str(pid) +' thread:'+ threadName + '(' + str(thread) + ') ansible playbook run finished OK: ' + str(success))
         return success
-
 
 class Runner(object):
     """
