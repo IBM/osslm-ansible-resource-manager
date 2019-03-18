@@ -98,6 +98,7 @@ class LogstashFormatter(logging.Formatter):
             'type': self.message_type,
 
             # Extra Fields
+            'thread_name': record.threadName,
             'level': record.levelname,
             'logger_name': record.name,
             '@tracectx.transactionid': threadLocal.get('txnId')

@@ -44,7 +44,6 @@ class RequestHandler():
         self.startedAt = datetime.now()
 
         # do some checks
-        app.logger.info('transition request ' + str(self.requestId)  + ' received: ' + str(self.transitionRequest))
 
         # check resource type
         app.logger.debug('validating request resource type: ' + self.transitionRequest.resource_type)

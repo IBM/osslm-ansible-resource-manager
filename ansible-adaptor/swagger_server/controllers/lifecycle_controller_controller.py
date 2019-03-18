@@ -56,16 +56,14 @@ def lifecycle_transitions_post(transitionRequest=None):
 
         threadLocal.set('txnId', connexion.request.headers.get('X-Tracectx-Transactionid', ''))
 
-        app.logger.debug('Transition request ' + str(transitionRequest) + ' started')
-
         # create the request
         requestHandler = RequestHandler()
         rc, resp = requestHandler.start_request(transitionRequest)
 
         if rc == 202:
-            app.logger.debug('transition started')
+            app.logger.debug('Transition request started: ' + str(transitionRequest))
         else:
-            app.logger.error('transition start failed')
+            app.logger.error('Transition request start failed: ' + str(transitionRequest))
         # app.logger.debug('transition request response: ' + json.dumps(resp))
 
         return resp, rc
