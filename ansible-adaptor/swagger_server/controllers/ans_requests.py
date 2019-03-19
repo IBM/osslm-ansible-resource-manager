@@ -111,7 +111,7 @@ class RequestHandler():
         else:
             lc_intprops={}
 
-        app.logger.info('transition request ' + action + ' variables: ' + str(user_data))
+        app.logger.info('transition request ' + str(self.requestId) + ' ' + str(self.transitionRequest) + ', ' + action + ' variables: ' + str(user_data))
 
         # creata ansible playbook runner
         runner = Runner(

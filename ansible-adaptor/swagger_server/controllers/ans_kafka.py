@@ -26,6 +26,8 @@ class Kafka:
         self.config = ConfigReader()
         self.kafkaUrl = self.config.getDriverProperties('responseKafkaConnectionUrl')
         self.kafkaTopic = self.config.getDriverProperties('responseKafkaTopicName')
+        self.numPartitions = self.config.getDriverProperties('responseKafkaTopicName')
+        self.kafkaReplicationFactor = self.config.getKafkaReplicationFactor()
 
         try:
             self.kproducer = KafkaProducer(bootstrap_servers=self.kafkaUrl, value_serializer=lambda m: json.dumps(m).encode('ascii'), api_version=(0, 10))
@@ -35,10 +37,10 @@ class Kafka:
             self.producer = None
 
         try:
-            ensure_topic( topic=self.kafkaTopic, num_partitions=1, brokers=self.kafkaUrl,
-                           logger=self.logger )
+            ensure_topic( topic=self.kafkaTopic, num_partitions=1, replication_factor=self.kafkaReplicationFactor, brokers=self.kafkaUrl,
+                          logger=self.logger )
         except Exception as e:
-            self.logger.error('could not create kafka topic at ' + self.kafkaUrl)
+            self.logger.exception('could not create kafka topic at ' + self.kafkaUrl)
             self.producer = None
 
     def sendLifecycleEvent(self, msg):

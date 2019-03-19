@@ -11,9 +11,8 @@ from kafka.protocol import types
 from flask import current_app as app
 
 
-def ensure_topic( topic, num_partitions,
-                 logger,
-                 timeout_ms=3000, brokers='localhost' ):
+def ensure_topic( topic, num_partitions, replication_factor,
+                  logger, timeout_ms=3000, brokers='localhost' ):
     logger.debug('checking kafka for topic '+topic)
     client = KafkaClient(bootstrap_servers=brokers)
 
@@ -24,7 +23,7 @@ def ensure_topic( topic, num_partitions,
             create_topic_requests=[(
                 topic,
                 num_partitions,
-                1,
+                replication_factor,
                 [],  # Partition assignment
                 [],  # Configs
             )],
