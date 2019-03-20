@@ -32,7 +32,7 @@ def ensure_topic( topic, num_partitions, replication_factor,
         future = client.send(client.least_loaded_node(), request)
         client.poll(timeout_ms=timeout_ms, future=future)
         result = future.value
-        error_code = result.topic_error_codes[0][1]
+        error_code = result.topic_errors[0][1]
         # 0: success
         # 36: already exists, check topic
         if error_code == 0:
