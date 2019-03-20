@@ -35,7 +35,7 @@ class InstanceHandler():
         retrive all instances from db
         """
         loc = LocationHandler()
-        app.logger.info('validating location ' + self.location_name)
+        app.logger.debug('validating location ' + self.location_name)
         rc, rcMsg, self.location = loc.get_location_config(self.location_name)
         if rc != 200:
             app.logger.error(rcMsg)
@@ -53,7 +53,7 @@ class InstanceHandler():
         get properties of one instance
         """
 
-        app.logger.info('searching for instance with metricKey: ' + metricKey)
+        app.logger.debug('searching for instance with metricKey: ' + metricKey)
 
         query = """SELECT properties as "properties",
             internalProperties as "internalproperties"
@@ -71,8 +71,7 @@ class InstanceHandler():
                 else:
                     row['internalproperties'] = dict(row['internalproperties'])
 
-                app.logger.info('resource instance found')
-            app.logger.debug(str(row))
+            app.logger.debug('resource instance found ' + str(row))
             return row['properties'], row['internalproperties']
         else:
             app.logger.error('no instance found for metric_key: ' + metricKey)
@@ -84,7 +83,7 @@ class InstanceHandler():
         need to search all resource type and locations..
         """
 
-        app.logger.info('searching for instance id: ' + instanceId)
+        app.logger.debug('searching for instance id: ' + instanceId)
 
         query = """SELECT resourceId as "resourceId",
             resourcename as "resourceName",
@@ -109,18 +108,17 @@ class InstanceHandler():
                 row['resourceId'] = str(row['resourceId'])
                 row['createdAt'] = row['createdAt'].strftime('%Y-%m-%dT%H:%M:%SZ')
                 row['lastModifiedAt'] = row['lastModifiedAt'].strftime('%Y-%m-%dT%H:%M:%SZ')
-                app.logger.info('resource instannce found')
-            app.logger.debug(str(row))
+            app.logger.debug('resource instance found ' + str(row))
             return 200, row
         else:
-            app.logger.info('no instance found for id: ' + instanceId)
+            app.logger.debug('no instance found for id: ' + instanceId)
             return 404, ''
 
 
     def get_instances_from_db(self, instanceName=None):
         pload = []
         # search for instances in the inventory folder
-        app.logger.info('search for instances ')
+        app.logger.debug('search for instances ')
 
         select = """SELECT resourceId as "resourceId",
              resourceName as "resourceName",
@@ -157,8 +155,7 @@ class InstanceHandler():
                     app.logger.debug('YES! ' + instanceName + ' is part of '+row['resourceName'])
                     pload.append(row)
 
-        app.logger.info(str(len(pload)) + ' instances found')
-        app.logger.debug('instances found: ' + str(pload))
+        app.logger.debug(str(len(pload)) + 'instances found: ' + str(pload))
 
         return pload
 
@@ -167,7 +164,7 @@ class InstanceHandler():
         get instance details from VIM
         """
         if instanceName:
-            app.logger.info('scanning for instance ' + instanceName)
+            app.logger.debug('scanning for instance ' + instanceName)
         app.logger.debug('location is ' + str(self.location))
         # get ansible playbook variables
         user_data = {}
@@ -190,10 +187,10 @@ class InstanceHandler():
             verbosity=0
         )
 
-        app.logger.info('run vim facts playbook')
+        app.logger.debug('run vim facts playbook')
         properties, rcOK = runner.run()
         app.logger.debug('vim facts found:' + str(properties['instances']))
-        app.logger.info('create instance records from facts')
+        app.logger.debug('create instance records from facts')
         jprop = json.loads(properties['instances'])
         keymap = json.loads(properties['mappings'])
 
@@ -205,7 +202,6 @@ class InstanceHandler():
             pitem['resourceType'] = 'resource::' + self.resType + '::' + self.resVer
             pitem['deploymentLocation'] = self.location_name
             pitem['resourceManagerId'] = self.config.getDriverName()
-
             pitem['resourceId'] = uuid.UUID(pitem['resourceId'])
 
             # map properties
@@ -227,6 +223,6 @@ class InstanceHandler():
                 (pitem['resourceId'], pitem['resourceType'], pitem['resourceName'], pitem['resourceManagerId'], pitem['deploymentLocation'], created_at, last_modified_at, pitem['props'])
                 )
 
-            app.logger.info('instance logged to DB: ' + str(pitem['resourceId']))
+            app.logger.debug('instance logged to DB: ' + str(pitem['resourceId']))
 
         return

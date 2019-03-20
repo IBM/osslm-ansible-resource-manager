@@ -82,7 +82,6 @@ class OutputCallback(CallbackBase):
                         dict(item.split(':', maxsplit=1)
 #                             for item in i.replace(' ', '').split(',')))
                              for item in i.replace(' ', '').split('#') ))
-                self.logger.info('properties reported')
                 self.logger.debug('properties are: ' + str(self.properties))
 
             elif 'INTERNAL_PROPERTIES' in task:
@@ -92,7 +91,6 @@ class OutputCallback(CallbackBase):
                     self.internal_properties.update(
                         dict(item.split(':', maxsplit=1)
                              for item in i.replace(' ', '').split(',')))
-                self.logger.info('internal properties reported')
                 self.logger.debug('internal properties are: ' + str(self.internal_properties))
 
             elif 'INTERNAL_RESOURCE' in task:
@@ -103,8 +101,7 @@ class OutputCallback(CallbackBase):
                     int_resource.update(dict(item.split(':', maxsplit=1) for item in i.replace(' ', '').split(',')))
                 # add the new internal resource to the list
                 self.internal_resource_instances.append(int_resource)
-                self.logger.info('internal resources reported')
-                self.logger.debug('interal resources are : ' + str(int_resource))
+                self.logger.debug('internal resources are : ' + str(int_resource))
 
             elif 'FAILURE' in task:
                 # playbook enforces failure
@@ -116,8 +113,7 @@ class OutputCallback(CallbackBase):
                 self.failure_reason = failure['failure_reason']
 
                 self.playbook_failed = True
-                self.logger.error('failure reported')
-                self.logger.error('failure code: ' + self.failure_code)
+                self.logger.error('failure reported code: ' + self.failure_code)
 
             else:
                 self.logger.warning('unsupported output type found in ansible playbook')
@@ -131,7 +127,6 @@ class OutputCallback(CallbackBase):
         task_result = result._result
 
         msg = task_result['msg']
-        self.logger.error('task: \'' + self.failed_task + '\' FAILED: ' + str(msg))
         if 'UNREACHABLE' in msg:
             self.host_unreachable = True
             self.failure_reason = 'resource unreachable'
@@ -139,8 +134,8 @@ class OutputCallback(CallbackBase):
         else:
             self.failure_reason = 'resource tasks failed'
 
-        self.host_failed_log.append(dict(task=self.failed_task, result=result._result))
-        self.logger.debug(str(self.host_failed_log))
+        self.host_failed_log.append(dict(task=self.failed_task, result=task_result))
+        self.logger.error('task: \'' + self.failed_task + '\' FAILED: ' + str(msg) + ', ' + str(self.host_failed_log))
 
     def v2_playbook_on_play_start(self, play, *args, **kwargs):
         """
@@ -460,7 +455,7 @@ class Runner(object):
         """
         save instance details to db
         """
-        self.logger.info('create instance  ' + resource_id)
+        self.logger.debug('create instance  ' + resource_id)
 
         # a little cheating, need to get this from OS
         created_at = self.finished_at.strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -498,15 +493,14 @@ class Runner(object):
             self.logger.error(str(err))
             raise
 
-        self.logger.info('instance logged to DB: ' + str(pitem['resourceId']))
-        self.logger.debug('instance created ' + str(pitem))
+        self.logger.debug('instance created and logger to database ' + str(pitem))
         return pitem
 
     def update_instance_props(self, resource_id, out_props, internal_properties):
         """
         update instance properties to db
         """
-        self.logger.info('update instance  ' + resource_id)
+        self.logger.debug('update instance  ' + resource_id)
 
         # a little cheating, need to get this from OS
         created_at = self.finished_at.strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -536,7 +530,6 @@ class Runner(object):
             self.logger.error(str(err))
             raise
 
-        self.logger.info('instance updated in DB: ' + str(pitem['resourceId']))
         self.logger.debug('instance updated ' + str(pitem))
         return pitem
 
@@ -544,7 +537,7 @@ class Runner(object):
         """
         delete instance details from db
         """
-        self.logger.info('deleting instance  ' + resource_id)
+        self.logger.debug('deleting instance  ' + resource_id)
 
         try:
             self.dbsession.execute("""

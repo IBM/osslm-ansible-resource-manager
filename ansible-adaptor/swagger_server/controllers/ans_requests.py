@@ -51,9 +51,8 @@ class RequestHandler():
 
         self.playbook_dir = self.config.getResourceDir()+'/'+self.resType+'/'+self.resVer+'/lifecycle/'
         if rc != 200:
-            app.logger.error('invalid resource type: ' + self.transitionRequest.resource_type +', ' + rcMsg)
             resp = InlineResponse202(str(self.requestId), 'FAILED', rcMsg, '', self.config.getSupportedFeatures())
-            app.logger.info('request ' + str(self.requestId) + ' FAILED: ' + rcMsg)
+            app.logger.error('request ' + str(self.requestId) + ' FAILED: ' + 'invalid resource type: ' + self.transitionRequest.resource_type +', ' + rcMsg)
             return rc, resp
 
         # check requested action
