@@ -23,7 +23,7 @@ class LocationHandler():
         """
         pload = []
 
-        app.logger.info('retrieving locations')
+        app.logger.debug('retrieving locations')
 
         query = "SELECT name, type FROM locations"
         rows = self.dbsession.execute(query)
@@ -43,7 +43,7 @@ class LocationHandler():
         """
         pload = []
 
-        app.logger.info('retrieving locations')
+        app.logger.debug('retrieving locations')
 
         query = "SELECT name, type, properties FROM locations"
         rows = self.dbsession.execute(query)
@@ -102,7 +102,7 @@ class LocationHandler():
         get location details
         """
 
-        app.logger.info('retrieving location data for ' + locationName)
+        app.logger.debug('retrieving location data for ' + locationName)
 
         query = "SELECT name, type, properties FROM locations WHERE name = %s"
         rows = self.dbsession.execute(query, [locationName])
@@ -118,12 +118,11 @@ class LocationHandler():
         read location properties
         """
 
-        app.logger.info('getting properties for location ' + locationName)
+        app.logger.debug('getting properties for location ' + locationName)
 
         rc, rcMsg, location = self.get_location(locationName)
 
         if rc == 200:
-            app.logger.info('location details found')
             if location['properties'] is None:
                 locationProps = {}
             else:

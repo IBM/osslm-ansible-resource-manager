@@ -24,18 +24,19 @@ class ConfigReader:
                 app.logger.critical('configuration file config.yml not found')
                 raise FileNotFoundError
 
-            app.logger.info('loading configuration')
+            app.logger.debug('loading configuration')
             self.driver_name = cfg['driver']['name']
             self.driver_version = cfg['driver']['version']
             self.requests_ttl = os.environ.get('cassandra_ttl', None) or cfg['cassandra']['ttl']
             self.cassandra_uri = os.environ.get('cassandra_uri', None) or cfg['cassandra']['uri']
+            self.kafka_replicationFactor = int(os.environ.get('kafka_replicationFactor')) or int(cfg['driver']['kafka']['replicationFactor'])
 
             self.resource_dir = os.environ.get('ansible_resource_dir', None) or cfg['ansible']['resource_dir']
             app.logger.debug('check for resource folder: ' + self.resource_dir)
             # check if configured directory exists:
             if not os.path.isdir(self.resource_dir):
                 app.logger.warning('resource folder ' + self.resource_dir + ' does not exist')
-                app.logger.info('creating resource folder ' + self.resource_dir)
+                app.logger.debug('creating resource folder ' + self.resource_dir)
                 os.mkdir(self.resource_dir)
 
             self.keys_dir = os.environ.get('ansible_keys_dir', None) or cfg['ansible']['keys_dir']
@@ -43,7 +44,7 @@ class ConfigReader:
             # check if configured directory exists:
             if not os.path.isdir(self.keys_dir):
                 app.logger.warning('keys folder ' + self.keys_dir + ' does not exist')
-                app.logger.info('creating keys folder ' + self.keys_dir)
+                app.logger.debug('creating keys folder ' + self.keys_dir)
                 os.mkdir(self.keys_dir)
 
             tmp = os.environ.get('ssl_enabled', None)
@@ -79,12 +80,15 @@ class ConfigReader:
             """ get keypair directory """
             return self.keys_dir
 
+        def getKafkaReplicationFactor(self):
+            return self.kafka_replicationFactor
+
         def getDriverProperties(self, property):
             """ get driver properties """
             if property == None:
                 return self.supported_properties
             else:
-                return self.supported_properties[property]
+                return os.environ.get('driver_' + property, None) or self.supported_properties[property]
 
         def getSupportedFeatures(self):
             """ get supported features """

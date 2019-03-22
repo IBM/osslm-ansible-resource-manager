@@ -26,15 +26,15 @@ class CassandraHandler:
         def get_session(self):
             """ get a DB conenction """
             if self.dbSession:
-                app.logger.info('using cassandra session to ' + self.keyspace)
+                app.logger.debug('using cassandra session to ' + self.keyspace)
             else:
-                app.logger.info('creating cassandra session ' + self.keyspace)
+                app.logger.debug('creating cassandra session ' + self.keyspace)
 
                 try:
                     self.cluster = Cluster([self.config.cassandra_uri])
 
                     self.dbSession = self.cluster.connect()
-                    app.logger.info('connected to cassandra, keyspace: ' + self.keyspace)
+                    app.logger.debug('connected to cassandra, keyspace: ' + self.keyspace)
                 except ConnectionRefusedError as err:
                     app.logger.error("No connection error: {0}".format(err))
                     self.dbSession = None

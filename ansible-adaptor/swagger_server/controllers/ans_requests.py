@@ -19,10 +19,10 @@ from .ans_locations import LocationHandler
 from .ans_instances import InstanceHandler
 from .ans_handler import Runner
 from .ans_exceptions import InstanceNotFoundError
+from .ans_thread import threadLocal
 
 import random
 import time
-
 
 class RequestHandler():
     """
@@ -30,7 +30,7 @@ class RequestHandler():
     """
     def __init__(self):
         self.config = ConfigReader()
-        app.logger.info('initializing request handler')
+        app.logger.debug('initializing request handler')
         self.dbsession = CassandraHandler().get_session()
 
 
@@ -41,22 +41,18 @@ class RequestHandler():
         self.transitionRequest = tr
         # create request id
         self.requestId = uuid.uuid4()
-        app.logger.debug('creating request with id: ' + str(self.requestId))
         self.startedAt = datetime.now()
 
         # do some checks
-        app.logger.info('transition request received')
-        app.logger.debug('transition action: ' + self.transitionRequest.transition_name )
 
         # check resource type
-        app.logger.info('validating requeste resource type: ' + self.transitionRequest.resource_type)
+        app.logger.debug('validating request resource type: ' + self.transitionRequest.resource_type)
         rc, rcMsg, self.resType, self.resVer = ResourceTypeHandler().validate_resource_type(self.transitionRequest.resource_type)
 
         self.playbook_dir = self.config.getResourceDir()+'/'+self.resType+'/'+self.resVer+'/lifecycle/'
         if rc != 200:
-            app.logger.error('invalid resource type: ' + self.transitionRequest.resource_type +', ' + rcMsg)
             resp = InlineResponse202(str(self.requestId), 'FAILED', rcMsg, '', self.config.getSupportedFeatures())
-            app.logger.info('request ' + str(self.requestId) + ' FAILED: ' + rcMsg)
+            app.logger.error('request ' + str(self.requestId) + ' FAILED: ' + 'invalid resource type: ' + self.transitionRequest.resource_type +', ' + rcMsg)
             return rc, resp
 
         # check requested action
@@ -70,7 +66,7 @@ class RequestHandler():
             return 404, resp
 
         # check location exists
-        app.logger.info('validate location: ' + self.transitionRequest.deployment_location)
+        app.logger.debug('validate location: ' + self.transitionRequest.deployment_location)
         rc, rcMsg, location = LocationHandler().get_location_config(self.transitionRequest.deployment_location)
         if rc != 200:
             app.logger.error('location ' + self.transitionRequest.deployment_location + ' ' + rcMsg)
@@ -79,8 +75,7 @@ class RequestHandler():
             return rc, resp
 
         # get ansible playbook variables
-        app.logger.info('set playbook variables')
-        # first add locatino credentials and properties
+        # first add location credentials and properties
         user_data = {}
         user_data['user_id'] = 'ALM'
         user_data['keys_dir'] = self.config.getKeysDir()
@@ -115,13 +110,12 @@ class RequestHandler():
         else:
             lc_intprops={}
 
-
-        app.logger.debug('playbook variables set: ' + str(user_data))
+        app.logger.info('transition request ' + str(self.requestId) + ' ' + str(self.transitionRequest) + ', ' + action + ' variables: ' + str(user_data))
 
         # creata ansible playbook runner
-        app.logger.info('create an ansible playbook runner')
         runner = Runner(
             hostnames='localhost',
+            action=action,
             playbook=self.playbook_dir + action + '.yml',
             private_key_file='',
             become_pass='',
@@ -136,7 +130,7 @@ class RequestHandler():
             verbosity=4
         )
 
-        app.logger.info('ansible async playbook start')
+        app.logger.debug('ansible async playbook start')
 
         # with app.app_context():
         #     timeDelay = random.randrange(2000, 20000)
@@ -145,7 +139,7 @@ class RequestHandler():
         #     executor.submit(runner.run_async)
         runner.run_async()
 
-        app.logger.info('request ' + str(self.requestId) + ' PENDING ')
+        app.logger.debug('request ' + str(self.requestId) + ' PENDING ')
         resp = InlineResponse202(str(self.requestId), 'PENDING', '','',self.config.getSupportedFeatures())
         return 202, resp
 
@@ -155,7 +149,7 @@ class RequestHandler():
         """
 
         pload = {}
-        app.logger.info('reading request status from db')
+        app.logger.debug('reading request status from db')
 
         if requestId:
             requestId = uuid.UUID(requestId)
@@ -163,7 +157,7 @@ class RequestHandler():
             app.logger.error('request id missing')
             return 400, 'must provide request id', ''
 
-        app.logger.info('request fetched from DB: ' + str(requestId))
+        app.logger.debug('request fetched from DB: ' + str(requestId))
         query = "SELECT requestId, requestState, requestStateReason, requestFailureCode, resourceId, startedAt, finishedAt FROM requests WHERE requestId = %s"
         rows = self.dbsession.execute(query, [requestId])
 
@@ -188,5 +182,5 @@ class RequestHandler():
 
             return 200, '', pload
         else:
-            app.logger.info('no request found for id: '+str(requestId))
+            app.logger.warning('no request found for id: '+str(requestId))
             return 404, '', ''
