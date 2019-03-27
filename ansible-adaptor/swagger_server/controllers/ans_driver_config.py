@@ -29,7 +29,8 @@ class ConfigReader:
             self.driver_version = cfg['driver']['version']
             self.requests_ttl = os.environ.get('cassandra_ttl', None) or cfg['cassandra']['ttl']
             self.cassandra_uri = os.environ.get('cassandra_uri', None) or cfg['cassandra']['uri']
-            self.kafka_replicationFactor = int(os.environ.get('kafka_replicationFactor')) or int(cfg['driver']['kafka']['replicationFactor'])
+            self.kafka_replicationFactor = os.environ.get('kafka_replicationFactor') or cfg['driver']['kafka']['replicationFactor']
+            self.kafka_replicationFactor = int(self.kafka_replicationFactor)
 
             self.resource_dir = os.environ.get('ansible_resource_dir', None) or cfg['ansible']['resource_dir']
             app.logger.debug('check for resource folder: ' + self.resource_dir)
