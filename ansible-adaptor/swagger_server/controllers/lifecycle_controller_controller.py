@@ -6,8 +6,8 @@ from datetime import date, datetime
 from typing import List, Dict
 from six import iteritems
 from ..util import deserialize_date, deserialize_datetime
-
 from .ans_requests import RequestHandler
+from .ans_thread import threadLocal
 from flask import abort
 from flask import current_app as app
 import json
@@ -24,7 +24,7 @@ def lifecycle_transitions_id_status_get(id):
     """
 
     rI = RequestHandler()
-    app.logger.info('getting request status for :' + id)
+    app.logger.debug('getting request status for :' + id)
 
     try:
         val = uuid.UUID(id)
@@ -41,7 +41,6 @@ def lifecycle_transitions_id_status_get(id):
         app.logger.debug('request ' + id + 'details: ' + json.dumps(resp200))
         return resp200
 
-
 def lifecycle_transitions_post(transitionRequest=None):
     """
     Performs a transition against a Resource.
@@ -51,19 +50,22 @@ def lifecycle_transitions_post(transitionRequest=None):
 
     :rtype: InlineResponse202
     """
-    if connexion.request.is_json:
-        transitionRequest = TransitionRequest.from_dict(connexion.request.get_json())
+    try:
+        if connexion.request.is_json:
+            transitionRequest = TransitionRequest.from_dict(connexion.request.get_json())
 
-    # app.logger.debug('transition request received: ' + transitionRequest)
-    # create the request
-    app.logger.info('working on transition request ')
-    requestHandler = RequestHandler()
-    rc, resp = requestHandler.start_request(transitionRequest)
+        threadLocal.set('txnId', connexion.request.headers.get('X-Tracectx-Transactionid', ''))
 
-    if rc == 202:
-        app.logger.info('transition started')
-    else:
-        app.logger.info('transition start failed')
-    # app.logger.debug('transition request response: ' + json.dumps(resp))
+        # create the request
+        requestHandler = RequestHandler()
+        rc, resp = requestHandler.start_request(transitionRequest)
 
-    return resp, rc
+        if rc == 202:
+            app.logger.debug('Transition request started: ' + str(transitionRequest))
+        else:
+            app.logger.error('Transition request start failed: ' + str(transitionRequest))
+        # app.logger.debug('transition request response: ' + json.dumps(resp))
+
+        return resp, rc
+    finally:
+        threadLocal.set('txnId', '')

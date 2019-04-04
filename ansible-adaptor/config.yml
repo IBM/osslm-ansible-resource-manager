@@ -8,6 +8,9 @@ driver:
   properties:
     - responseKafkaConnectionUrl: "kafka:9092"
     - responseKafkaTopicName: "ansible-rm"
+  kafka:
+    replicationFactor: 1
+
 ansible:
   resource_dir: "/var/alm_ansible_rm/resources"
   keys_dir: "/var/alm_ansible_rm/keys"
