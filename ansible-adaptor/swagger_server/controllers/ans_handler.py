@@ -61,7 +61,7 @@ class OutputCallback(CallbackBase):
         ansible task finished ok
         """
         task = result._task.get_name()
-        self.logger.debug('ansible playbook task ' + task + ' run OK: ' + result._result)
+        self.logger.debug('ansible playbook task ' + task + ' run OK: ' + str(result._result))
         if 'results' in result._result.keys():
             self.facts = result._result['results']
         else:
