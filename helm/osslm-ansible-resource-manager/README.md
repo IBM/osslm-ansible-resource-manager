@@ -41,7 +41,7 @@ NOTE: You can skip the need for persistent volumes by settings cassandra.persist
 Install Helm Chart
 
 ```
-helm install osslm-ansible-resource-manager-1.3.3.tgz --name osslm-ansible-rm --namespace default --values osslm-ansible-rm.values.yaml --debug
+helm install osslm-ansible-resource-manager-1.3.4.tgz --name osslm-ansible-rm --namespace default --values osslm-ansible-rm.values.yaml --debug
 ```
 
 ## Uninstall ##
