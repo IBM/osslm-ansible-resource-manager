@@ -41,6 +41,8 @@ spec:
       - name: osslm-ansible-rm
         persistentVolumeClaim:
           claimName: osslm-ansible-rm-vol4
+      {{- if and .Values.app.config.security.ssl.enabled .Values.app.config.security.ssl.secretName }}
       - name: {{ .Values.app.config.security.ssl.secretName }}
         secret:
           secretName: {{ .Values.app.config.security.ssl.secretName }}
+      {{- end }}
