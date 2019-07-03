@@ -312,10 +312,9 @@ class Runner(object):
 #            resource_id = self.callback.resource_id
 #            self.logger.debug(str(self.request_id) + ': ' + 'resource created id ' + resource_id)
 
-            # if self.transition_request.transition_name == 'Install':
-            # removed, properties and instances are part of every reponse now
             if not self.callback.internal_resource_instances:
-                self.logger.error(str(self.request_id) + ': ' + 'Internal Resources MUST be set')
+                if self.transition_request.transition_name in ('Install', 'Uninstall'):
+                    self.logger.warning(str(self.request_id) + ': ' + 'Internal Resources may be missing')
                 internal_resources = []
             else:
                 internal_resources = self.callback.internal_resource_instances
