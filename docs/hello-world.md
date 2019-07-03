@@ -9,6 +9,7 @@ To run the test:
 ```json
 {"context": {},
 "deploymentLocation": "world",
+"metricKey": "a0644bba-1da3-4074-b84b-0f260f82e482",
 "properties": {"prop1":"nouse"},
 "resourceManagerId": "ansible",
 "resourceName": "test",
