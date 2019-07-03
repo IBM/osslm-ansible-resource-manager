@@ -48,6 +48,16 @@ class ConfigReader:
                 app.logger.debug('creating keys folder ' + self.keys_dir)
                 os.mkdir(self.keys_dir)
 
+            tmp = os.environ.get('num_processes', None)
+            if tmp is None:
+                tmp = cfg['num_processes']
+                if tmp is not None:
+                    self.num_processes = int(tmp)
+                else
+                    self.num_processes = 8
+            else:
+                self.num_processes = int(tmp)
+
             tmp = os.environ.get('ssl_enabled', None)
             if(tmp is None):
                 tmp = cfg['ssl']['enabled']

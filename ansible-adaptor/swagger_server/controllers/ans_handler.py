@@ -61,7 +61,7 @@ class OutputCallback(CallbackBase):
         ansible task finished ok
         """
         task = result._task.get_name()
-        self.logger.debug('ansible playbook task ' + task + ' run OK: ' + result._result)
+        self.logger.debug('ansible playbook task ' + str(task) + ' run OK: ' + str(result._result))
         if 'results' in result._result.keys():
             self.facts = result._result['results']
         else:
@@ -113,7 +113,7 @@ class OutputCallback(CallbackBase):
                 self.failure_reason = failure['failure_reason']
 
                 self.playbook_failed = True
-                self.logger.error('failure reported code: ' + self.failure_code)
+                self.logger.error('failure reported code: ' + str(self.failure_code))
 
             else:
                 self.logger.warning('unsupported output type found in ansible playbook')
