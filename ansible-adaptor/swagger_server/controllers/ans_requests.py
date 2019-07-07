@@ -139,9 +139,8 @@ class RequestHandler():
         #     executor.submit(runner.run_async)
         runner.run_async()
 
-        app.logger.debug('request ' + str(self.requestId) + ' PENDING ')
-        resp = InlineResponse202(str(self.requestId), 'PENDING', '','',self.config.getSupportedFeatures())
-        return 202, resp
+        status, x, resp = self.get_request(self.requestId)
+        return status, resp
 
     def get_request(self, requestId):
         """
@@ -152,7 +151,8 @@ class RequestHandler():
         app.logger.debug('reading request status from db')
 
         if requestId:
-            requestId = uuid.UUID(requestId)
+            if isinstance(requestId, str):
+                requestId = uuid.UUID(requestId)
         else:
             app.logger.error('request id missing')
             return 400, 'must provide request id', ''

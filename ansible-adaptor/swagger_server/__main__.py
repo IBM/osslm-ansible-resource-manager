@@ -61,12 +61,14 @@ if __name__ == '__main__':
     k = Kafka(app.app.logger)
     app.add_api('swagger.yaml', arguments={'title': 'ansible resource manager specification.'})
 
+    app.app.logger.info('number of processes: ' + str(config.num_processes))
+
     if(config.ssl_enabled and ssl):
         ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
         ctx.load_cert_chain(config.ssl_dir + '/tls.crt', config.ssl_dir + '/tls.key')
 
         app.app.logger.info('driver starting listening on port 8443')
-        app.run(port=8443,threaded=False,processes=8,ssl_context=ctx)
+        app.run(port=8443,threaded=False,processes=config.num_processes,ssl_context=ctx)
     else:
         app.app.logger.info('driver starting listening on port 8080')
-        app.run(port=8080,threaded=False,processes=8)
+        app.run(port=8080,threaded=False,processes=config.num_processes)
