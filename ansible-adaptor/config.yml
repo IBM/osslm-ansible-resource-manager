@@ -20,3 +20,4 @@ ssl:
 cassandra:
   uri: alm-ansible-rm-db
   ttl: 86400
+num_processes: 30
