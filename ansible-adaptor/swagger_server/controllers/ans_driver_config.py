@@ -53,7 +53,7 @@ class ConfigReader:
                 tmp = cfg['num_processes']
                 if tmp is not None:
                     self.num_processes = int(tmp)
-                else
+                else:
                     self.num_processes = 8
             else:
                 self.num_processes = int(tmp)
