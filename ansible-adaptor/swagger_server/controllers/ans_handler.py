@@ -356,7 +356,8 @@ class Runner(object):
                 self.logger.debug(str(self.request_id) + ': ' + 'updating instance properties')
                 self.resInstance = self.update_instance_props(resource_id, properties, internalProperties)
             else:
-                self.logger.debug(str(self.request_id) + ': ' + 'no instance update for operation ')
+                self.logger.debug(str(self.request_id) + ': ' + 'update internal properties ')
+                self.resInstance = self.update_instance_props(resource_id, None, internalProperties)
 
             if ('protocol' in prop_output) and ( prop_output['protocol'] == 'SOL003'):
                 self.log_request_status('IN_PROGRESS', '', '', resource_id)
@@ -513,17 +514,29 @@ class Runner(object):
                  }
 
         try:
-            self.dbsession.execute("""
-                UPDATE instances
-                SET
-                lastModifiedAt=%s,
-                properties=%s,
-                internalProperties=%s
-                WHERE resourceId=%s
-                AND deploymentLocation=%s
-                """,
-                                   (pitem['lastModifiedAt'],  pitem['properties'], pitem['internalProperties'], uuid.UUID(pitem['resourceId']), pitem['deploymentLocation'])
-                                   )
+            if out_props is None:
+                self.dbsession.execute("""
+                    UPDATE instances
+                    SET
+                    lastModifiedAt=%s,
+                    internalProperties=%s
+                    WHERE resourceId=%s
+                    AND deploymentLocation=%s
+                    """,
+                                       (pitem['lastModifiedAt'], pitem['internalProperties'], uuid.UUID(pitem['resourceId']), pitem['deploymentLocation'])
+                                       )
+            else:
+                self.dbsession.execute("""
+                    UPDATE instances
+                    SET
+                    lastModifiedAt=%s,
+                    properties=%s,
+                    internalProperties=%s
+                    WHERE resourceId=%s
+                    AND deploymentLocation=%s
+                    """,
+                                       (pitem['lastModifiedAt'],  pitem['properties'], pitem['internalProperties'], uuid.UUID(pitem['resourceId']), pitem['deploymentLocation'])
+                                       )
         except Exception as err:
             # handle any other exception
             self.logger.error(str(err))

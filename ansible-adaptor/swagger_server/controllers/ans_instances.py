@@ -173,6 +173,7 @@ class InstanceHandler():
 
         runner = Runner(
             hostnames='localhost',
+            action='GetInstance',
             playbook=self.playbook_dir + 'GetInstance.yml',
             private_key_file='',
             become_pass='',
@@ -202,7 +203,11 @@ class InstanceHandler():
             pitem['resourceType'] = 'resource::' + self.resType + '::' + self.resVer
             pitem['deploymentLocation'] = self.location_name
             pitem['resourceManagerId'] = self.config.getDriverName()
-            pitem['resourceId'] = uuid.UUID(pitem['resourceId'])
+
+            try:
+                pitem['resourceId'] = uuid.UUID(pitem['resourceId'])
+            except ValueError:
+                pitem['resourceId'] = uuid.uuid4()
 
             # map properties
             pitem['props'] = {}
@@ -214,6 +219,8 @@ class InstanceHandler():
             # a little cheating, need to get this from OS
             created_at = datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
             last_modified_at = created_at
+
+            app.logger.debug(str(pitem))
 
             self.dbsession.execute("""
                 INSERT INTO instances
