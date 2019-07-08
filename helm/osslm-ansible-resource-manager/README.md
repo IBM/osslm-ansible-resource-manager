@@ -41,7 +41,7 @@ NOTE: You can skip the need for persistent volumes by settings cassandra.persist
 Install Helm Chart
 
 ```
-helm install osslm-ansible-resource-manager-1.3.5.tgz --name osslm-ansible-rm --namespace default --values osslm-ansible-rm.values.yaml --debug
+helm install osslm-ansible-resource-manager-1.3.6.tgz --name osslm-ansible-rm --namespace default --values osslm-ansible-rm.values.yaml --debug
 ```
 
 ## Uninstall ##
@@ -118,7 +118,7 @@ kubectl create secret  tls <secretName from above> --cert=tls.crt --key=tls.key 
 
 ### Configure Docker Image ###
 
-By default the Helm chart looks for a Docker image called osslm-ansible-rm:1.3.5 locally. If different then update image and version as shown below:
+By default the Helm chart looks for a Docker image called osslm-ansible-rm:1.3.6 locally. If different then update image and version as shown below:
 
 Add to ansible-rm-values.yaml
 
