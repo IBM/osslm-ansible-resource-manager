@@ -24,24 +24,28 @@ class Kafka:
         self.kproducer = None
         self.logger.debug('reading kafka config')
         self.config = ConfigReader()
-        self.kafkaUrl = self.config.getDriverProperties('responseKafkaConnectionUrl')
+        self.kafkaUrl = self.config.getKafkaUrl()
         self.kafkaTopic = self.config.getDriverProperties('responseKafkaTopicName')
-        self.numPartitions = self.config.getDriverProperties('responseKafkaTopicName')
         self.kafkaReplicationFactor = self.config.getKafkaReplicationFactor()
 
         try:
-            self.kproducer = KafkaProducer(bootstrap_servers=self.kafkaUrl, value_serializer=lambda m: json.dumps(m).encode('ascii'), api_version=(0, 10))
+            self.logger.debug(self.kafkaUrl)
+            self.kproducer = KafkaProducer(bootstrap_servers=[str(self.kafkaUrl)], value_serializer=lambda m: json.dumps(m).encode('ascii'), api_version=(0, 10))
             self.logger.debug('kafka producer is up')
         except Exception as e:
+            self.logger.error(str(e))
             self.logger.error('could not connect to kafka server at ' + self.kafkaUrl+' no messages will be published')
-            self.producer = None
+            self.kproducer = None
 
-        try:
-            ensure_topic( topic=self.kafkaTopic, num_partitions=1, replication_factor=self.kafkaReplicationFactor, brokers=self.kafkaUrl,
-                          logger=self.logger )
-        except Exception as e:
-            self.logger.exception('could not create kafka topic at ' + self.kafkaUrl)
-            self.producer = None
+        if self.kproducer is not None:
+            try:
+                ensure_topic( topic=self.kafkaTopic, num_partitions=1, replication_factor=self.kafkaReplicationFactor, brokers=self.kafkaUrl,
+                              logger=self.logger )
+            except Exception as e:
+                self.logger.exception('could not create kafka topic at ' + self.kafkaUrl)
+                self.kproducer = None
+
+
 
     def sendLifecycleEvent(self, msg):
         self.logger.debug('message is valid json '+ str(json.dumps(msg)))

@@ -29,8 +29,9 @@ class ConfigReader:
             self.driver_version = cfg['driver']['version']
             self.requests_ttl = os.environ.get('cassandra_ttl', None) or cfg['cassandra']['ttl']
             self.cassandra_uri = os.environ.get('cassandra_uri', None) or cfg['cassandra']['uri']
-            self.kafka_replicationFactor = os.environ.get('kafka_replicationFactor') or cfg['driver']['kafka']['replicationFactor']
+            self.kafka_replicationFactor = os.environ.get('kafka_replicationFactor')
             self.kafka_replicationFactor = int(self.kafka_replicationFactor)
+            self.kafka_url = os.environ.get('KAFKA_URL')
 
             self.resource_dir = os.environ.get('ansible_resource_dir', None) or cfg['ansible']['resource_dir']
             app.logger.debug('check for resource folder: ' + self.resource_dir)
@@ -93,6 +94,9 @@ class ConfigReader:
 
         def getKafkaReplicationFactor(self):
             return self.kafka_replicationFactor
+
+        def getKafkaUrl(self):
+            return self.kafka_url
 
         def getDriverProperties(self, property):
             """ get driver properties """
