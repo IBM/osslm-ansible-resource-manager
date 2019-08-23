@@ -9,40 +9,25 @@ from kafka.protocol import admin
 from kafka.protocol.api import Response, Request
 from kafka.protocol import types
 from flask import current_app as app
+from kafka.admin import KafkaAdminClient, NewTopic
+from kafka.errors import TopicAlreadyExistsError
 
 
-def ensure_topic( topic, num_partitions, replication_factor,
-                  logger, timeout_ms=3000, brokers='localhost' ):
-    logger.debug('checking kafka for topic '+topic)
-    client = KafkaClient(bootstrap_servers=brokers)
+def ensure_topic( topic, num_partitions, replication_factor, logger,
+                  timeout_ms=3000, brokers='localhost' ):
 
-    if topic not in client.cluster.topics(exclude_internal_topics=True):
-        logger.debug('creating kafka topic '+topic)
+    adminclient = KafkaAdminClient(bootstrap_servers=brokers, client_id='ansible-rm')
 
-        request = admin.CreateTopicsRequest_v0(
-            create_topic_requests=[(
-                topic,
-                num_partitions,
-                replication_factor,
-                [],  # Partition assignment
-                [],  # Configs
-            )],
-            timeout=timeout_ms
-        )
-        future = client.send(client.least_loaded_node(), request)
-        client.poll(timeout_ms=timeout_ms, future=future)
-        result = future.value
-        error_code = result.topic_errors[0][1]
-        # 0: success
-        # 36: already exists, check topic
-        if error_code == 0:
-            logger.debug('kafka topic '+topic+' created')
-            return
-        elif error_code != 36:
-            logger.error('error creating kafka topic '+topic)
-            raise Exception('Unknown error code during creation of topic `{}`: {}'.format(
-                topic, error_code))
+    topic_list = []
+    topic_list.append(NewTopic(name=topic, num_partitions=1, replication_factor=1))
 
-    else:
-        logger.debug('kafka topic '+topic+' exists')
-#ensure_topic( topic='alm_test',num_partitions=1, brokers='kafka:9092')
+    try:
+        adminclient.create_topics(new_topics=topic_list, validate_only=False)
+        # adminclient.delete_topics(topic_list)
+        logger.info('kafka topic '+topic+' created')
+    except TopicAlreadyExistsError as e:
+        logger.info('kafka topic '+topic+' exists')
+    except Exception as e:
+        logger.error('error creating kafka topic '+topic)
+        raise Exception('Unknown error code during creation of topic `{}`: {}'.format(
+                        topic, str(e)))
