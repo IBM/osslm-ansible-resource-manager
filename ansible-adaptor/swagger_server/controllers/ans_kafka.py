@@ -30,7 +30,7 @@ class Kafka:
 
         try:
             self.logger.debug(self.kafkaUrl)
-            self.kproducer = KafkaProducer(bootstrap_servers=[str(self.kafkaUrl)], value_serializer=lambda m: json.dumps(m).encode('ascii'), api_version=(0, 10))
+            self.kproducer = KafkaProducer(bootstrap_servers=self.kafkaUrl, value_serializer=lambda m: json.dumps(m).encode('ascii'), api_version=(0, 10))
             self.logger.debug('kafka producer is up')
         except Exception as e:
             self.logger.error(str(e))
