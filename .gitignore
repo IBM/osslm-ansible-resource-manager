@@ -3,7 +3,7 @@
 **/.DS_Store
 var_alm_ansible_rm/**
 **/.linter*
-
+**/*.tgz
 /.idea/inspectionProfiles/Project_Default.xml
 /.idea/misc.xml
 /.idea/modules.xml
