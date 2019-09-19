@@ -350,8 +350,9 @@ class Runner(object):
                 self.logger.debug(str(self.request_id) + ': ' + 'creating instance')
                 self.resInstance = self.create_instance(resource_id, properties, internal_resources, internalProperties)
             elif self.transition_request.transition_name == 'Uninstall':
-                self.logger.debug(str(self.request_id) + ': ' + 'deleting instance')
-                self.delete_instance(resource_id, self.transition_request.deployment_location)
+                if not (('protocol' in prop_output) and ( prop_output['protocol'] == 'SOL003')):
+                    self.logger.debug(str(self.request_id) + ': ' + 'deleting instance')
+                    self.delete_instance(resource_id, self.transition_request.deployment_location)
             elif self.transition_request.transition_name in ('Start', 'Stop','Configure','Integrity'):
                 self.logger.debug(str(self.request_id) + ': ' + 'updating instance properties')
                 self.resInstance = self.update_instance_props(resource_id, properties, internalProperties)
@@ -359,7 +360,7 @@ class Runner(object):
                 self.logger.debug(str(self.request_id) + ': ' + 'update internal properties ')
                 self.resInstance = self.update_instance_props(resource_id, None, internalProperties)
 
-            if ('protocol' in prop_output) and ( prop_output['protocol'] == 'SOL003'):
+            if ('protocol' in prop_output) and ( prop_output['protocol'] == 'SOL003') and (self.transition_request.transition_name in ('Install', 'Uninstall')):
                 self.log_request_status('IN_PROGRESS', '', '', resource_id)
             else:
                 self.log_request_status('COMPLETED', 'Done in ' + str((self.finished_at - self.started_at).total_seconds()) + ' seconds', '', resource_id)
