@@ -20,6 +20,10 @@ from .ans_kafka import *
 from swagger_server.models.transition_request import TransitionRequest
 import os
 
+# NEW 2.9 required by ansible 2.9 changes
+from ansible import context
+from ansible.module_utils.common.collections import ImmutableDict
+
 class OutputCallback(CallbackBase):
     """
     callbacks for the ansible playbook runner
@@ -193,52 +197,12 @@ class Runner(object):
         self.finished_at = None
         self.resInstance = {}
 
-        Options = namedtuple('Options',
-                             ['connection',
-                              'remote_user',
-                              'ask_sudo_pass',
-                              'verbosity',
-                              'ack_pass',
-                              'module_path',
-                              'forks',
-                              'become',
-                              'become_method',
-                              'become_user',
-                              'check',
-                              'listhosts',
-                              'listtasks',
-                              'listtags',
-                              'syntax',
-                              'sudo_user',
-                              'sudo',
-                              'diff',
-                              'private_key_file',
-                              'ansible_python_interpreter',
-                              'host_key_checking',
-                              'vault_password_file'])
-
-        self.options = Options(connection='ssh',
-                               remote_user=None,
-                               ack_pass=None,
-                               sudo_user=None,
-                               forks=20,
-                               sudo=None,
-                               ask_sudo_pass=False,
-                               verbosity=verbosity,
-                               module_path='/var/alm_ansible_rm/library',
-                               become=True,
-                               become_method='sudo',
-                               become_user='root',
-                               check=False,
-                               diff=False,
-                               listhosts=None,
-                               listtasks=None,
-                               listtags=None,
-                               syntax=None,
-                               private_key_file=private_key_file,
-                               ansible_python_interpreter='/usr/bin/python3',
-                               host_key_checking=False,
-                               vault_password_file='/etc/ansible/tslvault.txt')
+        # NEW 2.9
+        # handles options now
+        context.CLIARGS = ImmutableDict(connection='ssh', module_path=['/var/alm_ansible_rm/library'], forks=20, become=None,
+                                become_method='sudo', become_user='root', check=False, diff=False, ansible_python_interpreter='/usr/bin/python3',
+                                host_key_checking=False, vault_password_file='/etc/ansible/tslvault.txt', private_key_file=private_key_file,
+                                listhosts=None, listtasks=None, listtags=None, syntax=None, start_at_task=None)
 
         # Gets data from YAML/JSON files
         self.loader = DataLoader()
@@ -257,7 +221,8 @@ class Runner(object):
         # All the variables from all the various places
         self.variable_manager = VariableManager(loader=self.loader,
                                                 inventory=self.inventory)
-        self.variable_manager.extra_vars = self.run_variables
+        # MOD 2.9 - has been renamed, not sure this is the proposed way to treat extra_vars, but it works
+        self.variable_manager._extra_vars = self.run_variables
 
         # Become Pass Needed if not logging in as user root
         passwords = {'become_pass': become_pass}
@@ -268,7 +233,6 @@ class Runner(object):
             inventory=self.inventory,
             variable_manager=self.variable_manager,
             loader=self.loader,
-            options=self.options,
             passwords=passwords
         )
 
