@@ -202,7 +202,7 @@ class Runner(object):
         context.CLIARGS = ImmutableDict(connection='ssh', module_path=['/var/alm_ansible_rm/library'], forks=20, become=None,
                                 become_method='sudo', become_user='root', check=False, diff=False, ansible_python_interpreter='/usr/bin/python3',
                                 host_key_checking=False, vault_password_file='/etc/ansible/tslvault.txt', private_key_file=private_key_file,
-                                listhosts=None, listtasks=None, listtags=None, syntax=None, start_at_task=None)
+                                listhosts=None, listtasks=None, listtags=None, syntax=None, start_at_task=None, verbosity=verbosity)
 
         # Gets data from YAML/JSON files
         self.loader = DataLoader()
