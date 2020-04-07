@@ -60,7 +60,10 @@ def lifecycle_transitions_post(transitionRequest=None):
         requestHandler = RequestHandler()
         rc, resp = requestHandler.start_request(transitionRequest)
 
-        if rc == 202:
+        app.logger.debug('RCcode:' + str(rc))
+
+        if rc in (200, 202):
+#        if rc == 202:
             app.logger.debug('Transition request started: ' + str(transitionRequest))
         else:
             app.logger.error('Transition request start failed: ' + str(transitionRequest))

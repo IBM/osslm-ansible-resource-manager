@@ -421,10 +421,10 @@ definitions:
     properties:
       responseKafkaConnectionUrl:
         type: "string"
-        example: "“zookeeper://localhost:2181”"
+        example: "zookeeper://localhost:2181"
       responseKafkaTopicName:
         type: "string"
-        example: "“lm-responses\""
+        example: "lm-responses\"
   topologydeploymentlocationsnameinstances_properties:
     properties:
       propertyName:

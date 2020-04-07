@@ -1,4 +1,4 @@
-FROM ansible/ansible:ubuntu1604py3
+FROM python:3.6-slim-buster
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y supervisor && \
     # device handling
     pip3 install --no-cache-dir -r device-requirements.txt && \
     # using ansible 2.6 juniper core modules + opt juniper role
-    ansible-galaxy install Juniper.junos && \
+#    ansible-galaxy install Juniper.junos && \
     mkdir -p /var/log/supervisor
 
 COPY . /usr/src/app
