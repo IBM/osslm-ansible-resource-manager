@@ -2,7 +2,11 @@
 docker:
   ## Make this the full path, including registry host and port if using one
   image: accanto/osslm-ansible-rm
+<<<<<<< HEAD
   version: 1.3.8
+=======
+  version: 1.3.7
+>>>>>>> 6969d900d313fb30d55c7ae3c21d036ba65736f7
   imagePullPolicy: IfNotPresent
 
 ## Configuration for the application deployment
