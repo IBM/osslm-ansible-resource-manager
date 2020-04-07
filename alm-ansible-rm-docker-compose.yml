@@ -27,11 +27,7 @@ services:
      build:
        context: ./ansible-adaptor
        dockerfile: Dockerfile
-<<<<<<< HEAD
      image: arm:1.3.8
-=======
-     image: arm:1.3.7
->>>>>>> 6969d900d313fb30d55c7ae3c21d036ba65736f7
      ports:
        - "8080:8080"
      volumes:
