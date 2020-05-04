@@ -40,6 +40,11 @@ NOTE: You can skip the need for persistent volumes by settings cassandra.persist
 
 Install Helm Chart
 
+To install standalone on a k8s cluster ( 1 ansible rm instance, 1 cassandra instance, remote kafka ) run:
+```
+helm install osslm-ansible-resource-manager-1.3.8.tgz --name osslm-ansible-rm --namespace default --values osslm-ansible-rm.standalone_k8s_values.yaml --debug
+```
+To install into a ALM node ( 1 ansible rm , shared ALM cassandra and kafka) run:
 ```
 helm install osslm-ansible-resource-manager-1.3.8.tgz --name osslm-ansible-rm --namespace default --values osslm-ansible-rm.values.yaml --debug
 ```
