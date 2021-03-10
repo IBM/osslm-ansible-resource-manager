@@ -1,5 +1,8 @@
 
 #shared app files
+arm.code-workspace
+*.pyc
+**/.vscode*
 **/.DS_Store
 var_alm_ansible_rm/**
 **/.linter*
@@ -12,3 +15,4 @@ var_alm_ansible_rm/**
 /.idea/workspace.xml
 **/repo/*
 **/charts/*
+
