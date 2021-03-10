@@ -37,7 +37,7 @@ app:
       ## Access an existing Cassandra installed by the Lifecycle Manager in the same Kubernetes namespace
       ## This creates an additional service that forwards traffic to the existing Cassandra pods
       ## Expects a Cassandra installed using helm-foundation provided with the Lifecycle Manager
-      useExisting: true
+      useExisting: false
       existingSelectors:
         app: cassandra
         release: foundation
@@ -54,26 +54,26 @@ app:
     ## Pass additional environment variables to the application containers
     env:
 #      cassandra_ttl:
-      cassandra_uri: foundation-cassandra
+      cassandra_uri: alm-ansible-rm-db
       # to support indexing of logs in Elasticsearch using Filebeat, we use logstash format. This allows
       # us to bundle the log message and other metadata in a json log message and let Fielbeat extract them
       # as top level fields in the Elasticsearch index.
       LOG_TYPE: logstash
-      ssl_enabled: "true"
+      ssl_enabled: "false"
       driver_responseKafkaConnectionUrl: "foundation-kafka:9092"
       kafka_replicationFactor: "1"
       KAFKA_URL: "add kafak IP address and port"
     security:
       ssl:
-        enabled: true
+        enabled: false
         secretName: osslm-ansible-rm-tls
 
 persistence:
   size: "1Gi"
   ## If enabled, will create the PVs needed. Only creates 4 volumes, so there must only be 1 replica of Cassandra, Kafka and Zookeeper
-  enabled: false
+  enabled: true
   storageClass: "manual"
-  hostPath: /var/lib/osslm
+  hostPath: /tmp/osslm
 
 service:
   # Using NodePort allows access to the IPs through http://k8s-host:nodePort/
@@ -82,7 +82,7 @@ service:
   sslNodePort: 31081
 
 cassandra:
-  enabled: false
+  enabled: true
   ## Required as the ansible-rm application always connects to Cassandra on this hostname
   fullnameOverride: alm-ansible-rm-db
   ## Requires setting up the LocalStorage class and creating a Persistent Volume
