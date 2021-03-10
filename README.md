@@ -30,6 +30,14 @@ The images have been tested on MacOS 10.12 and ubuntu xenial
 ## Installation
 The steps to install this resource manager are described [here](docs/installation.md).
 
+## Tests
+There is a set of pytest tests that run most of the REST API.
+To run them
+* run docker-compose up -d
+* cd into the **tests** folder
+* install the python dependencies: pip install -r test_requirements.txt
+* run the tests with: pytest . -v
+
 ## hello-world
 There is an [example hello-world resource](docs/hello-world.md) to test and explore a run-through
 * from initiating a transition request
