@@ -7,6 +7,7 @@ COPY requirements.txt /usr/src/app/
 COPY device-requirements.txt /usr/src/app/
 
 RUN apt-get update && apt-get install -y supervisor && \
+    apt-get install -y procps && \
     apt-get install --reinstall -y build-essential && \
     pip3 install --no-cache-dir -r requirements.txt && \
     # device handling

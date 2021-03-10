@@ -1,0 +1,90 @@
+test_name: lifecycle API
+marks:
+  - usefixtures:
+      - get_uuid
+
+stages:
+  - name: request test resource install
+    request:
+      url: "{tavern.env_vars.ARM_URL}lifecycle/transitions"
+      method: POST
+      json:
+        deploymentLocation: "world"
+        metricKey: "{get_uuid}"
+        properties: 
+          prop1:  "nouse"
+        resourceManagerId: "ansible"
+        resourceName: "test_{get_uuid}"
+        resourceType: "resource::hello-world::1.0"
+        transitionName: "Install"
+    response:
+      status_code: 200
+      json: 
+        finishedAt: !anystr
+        requestFailureCode: ""
+        requestId: !anystr
+        requestState: "COMPLETED"
+        requestStateReason: !anystr
+        resourceId: !anystr
+        startedAt: !anystr
+      save:
+        json:
+          req_id: requestId
+
+
+  - name: get request status
+    request:
+      url: "{tavern.env_vars.ARM_URL}lifecycle/transitions/{req_id}/status"
+      method: GET
+    response:
+      status_code: 200
+      json: 
+        finishedAt: !anystr
+        requestFailureCode: ""
+        requestId: "{req_id}"
+        requestState: "COMPLETED"
+        requestStateReason: !anystr
+        resourceId: !anystr
+        startedAt: !anystr
+      save: 
+        json:
+          res_id: resourceId
+
+  - name: get resource instance status
+    request:
+      url: "{tavern.env_vars.ARM_URL}topology/instances/{res_id}"
+      method: GET
+    response:
+      status_code: 200
+      json: 
+        createdAt: !anystr
+        deploymentLocation: "world"
+        lastModifiedAt: !anystr
+        internalResourceInstances: null
+        properties: 
+          prop1: "nouse"
+          current_time: !anystr
+        resourceId: "{res_id}"
+        resourceManaerId: "ansible"
+        resourceName: "test_{res_id}"
+        resourceType: "resource::hello-world::1.0"
+
+  - name: get resource for location
+    request:
+      url: "{tavern.env_vars.ARM_URL}topology/deployment-locations/world/instances"
+      params:
+        instanceName: "test_{res_id}"
+      method: GET
+    response:
+      status_code: 200
+      json:
+        - createdAt: !anystr
+          deploymentLocation: "world"
+          lastModifiedAt: !anystr
+          properties: 
+            prop1: "nouse"
+            current_time: !anystr
+          resourceId: "{res_id}"
+          resourceManagerId: "ansible"
+          resourceName: "test_{res_id}"
+          resourceType: "resource::hello-world::1.0"        
