@@ -3,7 +3,7 @@ test_name: topology API
 stages:
   - name: Get all deployment locations
     request:
-      url: "{tavern.env_vars.ARM_URL}topology/deployment-locations"
+      url: "{api_url}topology/deployment-locations"
       method: GET
     response:
       status_code: 200
@@ -13,7 +13,7 @@ stages:
 
   - name: Get a deployment location by name
     request:
-      url: "{tavern.env_vars.ARM_URL}topology/deployment-locations/world"
+      url: "{api_url}topology/deployment-locations/world"
       method: GET
     response:
       status_code: 200
@@ -21,9 +21,9 @@ stages:
         name: "world"
         type: "planet"
 
-  - name: Get a deployment location by name, not found
+  - name: Get a deployment location by name, not found cases
     request:
-      url: "{tavern.env_vars.ARM_URL}topology/deployment-locations/worlds"
+      url: "{api_url}topology/deployment-locations/worlds"
       method: GET
     response:
       status_code: 404

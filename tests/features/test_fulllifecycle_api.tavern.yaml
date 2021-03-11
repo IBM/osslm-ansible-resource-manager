@@ -1,0 +1,201 @@
+test_name: full package, location and instance lifecycle
+marks:
+  - usefixtures:
+      - get_uuid
+
+stages:
+  - name: create a new deployment location MARS
+    request:
+      url: "{api_url}topology/deployment-locations/MARS"
+      method: PUT
+      json:
+        properties: 
+          prop1: "this is a test"
+          prop2: "some other property"
+        type: "planet"
+    response:
+      status_code: 204
+
+  - name: check MARS exists
+    request:
+      url: "{api_url}topology/deployment-locations/MARS"
+      method: GET
+    response:
+      status_code: 200   
+
+  - name: Upload a resource package
+    request:
+      url: "{api_url}types"
+      method: POST
+      data:
+        resource_name: "hello-world"
+        resource_version: "1.1"
+      files:
+        upfile: "features/helloworld11.csar"
+    response:
+      status_code: 200  
+
+  - name: Verify the new resource type exists
+    request:
+      url: "{api_url}types/resource::hello-world::1.1"
+      method: GET
+    response:
+      status_code: 200
+      json:
+        name: "resource::hello-world::1.1"
+        state: "PUBLISHED"
+        descriptor: !anystr  
+
+  - name: Install an instance of the new resource
+    request:
+      url: "{api_url}lifecycle/transitions"
+      method: POST
+      json:
+        deploymentLocation: "MARS"
+        metricKey: "{get_uuid}"
+        properties: 
+          prop1:  "nouse"
+        resourceManagerId: "ansible"
+        resourceName: "test_{get_uuid}"
+        resourceType: "resource::hello-world::1.1"
+        transitionName: "Install"
+    response:
+      status_code: 200
+      json: 
+        finishedAt: !anystr
+        requestFailureCode: ""
+        requestId: !anystr
+        requestState: "COMPLETED"
+        requestStateReason: !anystr
+        resourceId: !anystr
+        startedAt: !anystr
+      save:
+        json:
+          req_id: requestId
+
+  - name: Check the install request state
+    request:
+      url: "{api_url}lifecycle/transitions/{req_id}/status"
+      method: GET
+    response:
+      status_code: 200
+      json: 
+        finishedAt: !anystr
+        requestFailureCode: ""
+        requestId: "{req_id}"
+        requestState: "COMPLETED"
+        requestStateReason: !anystr
+        resourceId: !anystr
+        startedAt: !anystr
+      save: 
+        json:
+          res_id: resourceId
+
+  - name: Query the location for the new instance
+    request:
+      url: "{api_url}topology/deployment-locations/MARS/instances"
+      data:
+        instanceType: "resource::hello-world::1.1"
+      method: GET
+    response:
+      status_code: 200
+      json:
+        - resourceId: "{res_id}"
+          resourceName: "test_{res_id}"
+          resourceType: "resource::hello-world::1.1"
+          resourceManagerId: "ansible"
+          deploymentLocation: "MARS"
+          createdAt: !anystr 
+          lastModifiedAt: !anystr
+          properties: 
+            current_time: !anystr 
+            prop1: "nouse"
+
+  - name: Uninstall the instance of the new resource
+    request:
+      url: "{api_url}lifecycle/transitions"
+      method: POST
+      json:
+        deploymentLocation: "MARS"
+        metricKey: "{res_id}"
+        properties: 
+          prop1:  "nouse"
+        resourceManagerId: "ansible"
+        resourceName: "test_{res_id}"
+        resourceType: "resource::hello-world::1.1"
+        transitionName: "Uninstall"
+    response:
+      status_code: 200
+      json: 
+        finishedAt: !anystr
+        requestFailureCode: ""
+        requestId: !anystr
+        requestState: "COMPLETED"
+        requestStateReason: !anystr
+        resourceId: !anystr
+        startedAt: !anystr
+      save:
+        json:
+          req_id: requestId  
+
+  - name: Get the request status
+    request:
+      url: "{api_url}lifecycle/transitions/{req_id}/status"
+      method: GET
+    response:
+      status_code: 200
+      json: 
+        finishedAt: !anystr
+        requestFailureCode: ""
+        requestId: "{req_id}"
+        requestState: "COMPLETED"
+        requestStateReason: !anystr
+        resourceId: !anystr
+        startedAt: !anystr
+
+  - name: Verify the instance is not longer part of the location
+    request:
+      url: "{api_url}topology/deployment-locations/MARS/instances"
+      data:
+        instanceType: "resource::hello-world::1.1"
+      method: GET
+    response:
+      status_code: 200
+      json: []
+      
+  - name: Delete location MARS
+    request:
+      url: "{api_url}topology/deployment-locations/MARS"
+      method: DELETE
+    response:
+      status_code: 200  
+
+  - name: Verify MARS is gone
+    request:
+      url: "{api_url}topology/deployment-locations/MARS"
+      method: GET
+    response:
+      status_code: 404 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  

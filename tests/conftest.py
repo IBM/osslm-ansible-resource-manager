@@ -14,3 +14,5 @@ def get_uuid():
    return str(uuid.uuid1())
 
 
+def pytest_tavern_beta_before_every_test_run(test_dict, variables):
+   variables["api_url"] = "http://0.0.0.0:8080/api/v1.0/resource-manager/"

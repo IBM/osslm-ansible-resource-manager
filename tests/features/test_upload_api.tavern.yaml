@@ -1,0 +1,55 @@
+test_name: package upload failures
+strict:
+  - json:off
+
+marks:
+  - parametrize:
+      key: upfilename
+      vals:
+        - "features/helloworld_nodescriptoryaml.csar"
+        - "features/helloworld_noinstall.csar"
+        - "features/helloworld_nolifecycle.csar"
+        - "features/helloworld_nomanifest.csar"
+        - "features/helloworld_nomanifestyaml.csar"
+        - "features/helloworld_nometainf.csar"        
+
+stages:
+  - name: upload a package, wrong resource name
+    request:
+      url: "{api_url}types"
+      method: POST
+      data:
+        resource_name: "wrong_name"
+        resource_version: "1.1"
+      files:
+        upfile: "features/helloworld11.csar"
+    response:
+      status_code: 400
+      json:
+        detail: "no valid resource descriptor"
+
+  - name: upload a package, wrong version
+    request:
+      url: "{api_url}types"
+      method: POST
+      data:
+        resource_name: "hello-world"
+        resource_version: "2.0"
+      files:
+        upfile: "features/helloworld11.csar"
+    response:
+      status_code: 400
+      json:
+        detail: "no valid resource descriptor"
+
+  - name: upload an invalid package
+    request:
+      url: "{api_url}types"
+      method: POST
+      data:
+        resource_name: "hello-world"
+        resource_version: "1.1"
+      files:
+        upfile: "{upfilename}"
+    response:
+      status_code: 400

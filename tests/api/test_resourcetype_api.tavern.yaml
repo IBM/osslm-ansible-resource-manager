@@ -1,0 +1,51 @@
+test_name: resource type API
+
+strict:
+  - json:off
+
+marks:
+  - parametrize:
+      key: res_type
+      vals:
+        - "resource::hello-world::1.2"
+        - "resource::hello-worlds::1.0"
+        - "resource::hello-world:1.0"
+
+
+stages:
+  - name: Get all resource types
+    request:
+      url: "{api_url}types"
+      method: GET
+    response:
+      status_code: 200
+      json:
+        - name: "resource::hello-world::1.0"
+          state: "PUBLISHED"
+        - name: "resource::openstack-network::1.0"
+          state: "PUBLISHED"
+
+  - name: Get resource type details by name
+    request:
+      url: "{api_url}types/resource::hello-world::1.0"
+      method: GET
+    response:
+      status_code: 200
+      json:
+        name: "resource::hello-world::1.0"
+        state: "PUBLISHED"
+        descriptor: !anystr
+
+  - name: Get resource type details by name, not found cases
+    request:
+      url: "{api_url}types/{res_type}"
+      method: GET
+    response:
+      status_code: 404
+      json:
+        detail: !anystr
+        status: 404
+        title: "Not Found"
+        type: "about:blank"
+
+

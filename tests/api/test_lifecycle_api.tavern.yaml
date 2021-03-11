@@ -4,9 +4,9 @@ marks:
       - get_uuid
 
 stages:
-  - name: request test resource install
+  - name: Install an instance of the hello-world resrouce
     request:
-      url: "{tavern.env_vars.ARM_URL}lifecycle/transitions"
+      url: "{api_url}lifecycle/transitions"
       method: POST
       json:
         deploymentLocation: "world"
@@ -31,10 +31,9 @@ stages:
         json:
           req_id: requestId
 
-
-  - name: get request status
+  - name: Get the request status
     request:
-      url: "{tavern.env_vars.ARM_URL}lifecycle/transitions/{req_id}/status"
+      url: "{api_url}lifecycle/transitions/{req_id}/status"
       method: GET
     response:
       status_code: 200
@@ -50,9 +49,9 @@ stages:
         json:
           res_id: resourceId
 
-  - name: get resource instance status
+  - name: Get the instance status
     request:
-      url: "{tavern.env_vars.ARM_URL}topology/instances/{res_id}"
+      url: "{api_url}topology/instances/{res_id}"
       method: GET
     response:
       status_code: 200
@@ -69,9 +68,9 @@ stages:
         resourceName: "test_{res_id}"
         resourceType: "resource::hello-world::1.0"
 
-  - name: get resource for location
+  - name: Query the location for the instance
     request:
-      url: "{tavern.env_vars.ARM_URL}topology/deployment-locations/world/instances"
+      url: "{api_url}topology/deployment-locations/world/instances"
       params:
         instanceName: "test_{res_id}"
       method: GET

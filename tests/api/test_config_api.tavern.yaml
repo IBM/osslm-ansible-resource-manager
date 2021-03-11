@@ -3,7 +3,7 @@ test_name: configuration API
 stages:
   - name: Get config
     request:
-      url: "{tavern.env_vars.ARM_URL}configuration"
+      url: "{api_url}configuration"
       method: GET
     response:
       status_code: 200
